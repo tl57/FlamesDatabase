@@ -1,0 +1,16 @@
+## Interface: 11509
+## Title: Flame's Database
+## Notes: Profession, Spell and Item Database
+## Version: 1.0.0
+## Author: Flame
+## SavedVariables: FlamesDatabase
+## SavedVariablesPerCharacter: FlamesDatabaseCharSV
+## IconTexture
+
+
+embeds.xml
+
+Localization/strings_en.lua
+Source/FlamesDatabase.lua
+Source/minimap.lua
+Source/options.lua

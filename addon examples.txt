@@ -1,0 +1,4 @@
+Examples:
+
+creating a "What's New" window:
+- Deathlog/changelog.lua
