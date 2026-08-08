@@ -11,6 +11,8 @@
 embeds.xml
 
 Localization/strings_en.lua
-Source/FlamesDatabase.lua
+Source/mainframe.lua
+Source/changelogframe.lua
+Source/main.lua
 Source/minimap.lua
 Source/options.lua

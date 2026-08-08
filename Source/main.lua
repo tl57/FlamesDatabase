@@ -10,16 +10,9 @@ print("FlamesDatabase loaded!")
 
 -- changelog frame
 local function ShowChangeLog()
-    --local changelog = AceGUI:Create("Frame") ---@type AceGUIFrame
-    --frame:RegisterEvent("PLAYER_LOGIN")
-    --frame:SetScript("OnEvent", function(self, event, ...)
-    --changelog:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-    --changelog:SetSize(400, 400)
-    --changelog:SetTitle("todo")
-    --changelog:SetCallback("OnClose", function(widget)
-        --AceGUI:Release(widget)
-        --changelog = nil
-    --end)
+    if debug then print("showing changelog") end
+    showChangeLogFrame()
+    if debug then print("finished showing changelog") end
     FlamesDatabase.settings.changelogVersion = version
     FlamesDatabase.settings.shownChangeLog = true
     FlamesDatabase.settings.shownNewInstall = true
@@ -69,6 +62,8 @@ end
 
 function ShowMainFrame()
     if debug then print("showing main frame") end
+    showMainFrame()
+    if debug then print("finish showing main frame") end
 end
 ------------------------------------------------------------
 -- MAIN UI FRAME
