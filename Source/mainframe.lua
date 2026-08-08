@@ -1,23 +1,40 @@
 local AceGUI = LibStub("AceGUI-3.0")
 local addonName = ...
+local main_container = nil -- singleton: created once
 -- think about focusing a specific frame when having a profession open or in a specific dungeon
 
 function showMainFrame()
 	-- think about making the frame a singleton
-	local main_frame = AceGUI:Create("Frame")
-	main_frame:SetTitle(addonName)
-	main_frame:SetStatusText("Version ...")
-	main_frame:SetLayout("Fill")
-	main_frame:SetWidth(500)
-	main_frame:SetHeight(450)
-	main_frame:SetCallback("OnClose", function(widget) AceGUI:Release(widget); main_frame = nil end)
-	local scrollFrame = AceGUI:Create("ScrollFrame") scrollFrame:SetLayout("Flow")
-	main_frame:AddChild(scrollFrame)
-	scrollFrame:AddChild(AceGUI:Create("Label")) -- etc.
+	if (main_container and main_container.frame:IsShown()) then
+		return
+	end
 
--- The status bar button is NOT stored on the AceGUI Frame widget (only its
-	-- child fontstring `statustext` is). The bar is that fontstring's parent.
-	main_frame.statustext:GetParent():Hide()   -- hides the status bar
+	if (not main_container) then
+		main_container = AceGUI:Create("Window")
+		main_container:SetTitle(addonName)
+		main_container:SetLayout("Fill")
+		main_container:SetWidth(800)
+		main_container:SetHeight(450)
+		-- two different ways to close the widget
+		-- none of them are required due to the OnKeyDown register a bit down the code.
+		-- (Otherwise it will throw an exception - "double window.hide()")
+		--main_container:SetCallback("OnClose", function(widget) AceGUI:Release(widget); main_container = nil end)
+		--main_container:SetCallback("OnClose", function(widget) 
+		--	widget.Hide()
+		--end)
+
+	-- ESC to close via OnKeyDown (needs keyboard enabled)
+		main_container.frame:EnableKeyboard(true)
+		main_container.frame:SetPropagateKeyboardInput(true)
+		main_container.frame:SetScript("OnKeyDown", function(self, key)
+			if key == "ESCAPE" then self:Hide() end
+		end)
+	end
+	main_container:Show()
+
+	local scrollFrame = AceGUI:Create("ScrollFrame") scrollFrame:SetLayout("Flow")
+	main_container:AddChild(scrollFrame)
+	scrollFrame:AddChild(AceGUI:Create("Label")) -- etc.
 
 	if debug then print("finished mainframe code") end
 end
