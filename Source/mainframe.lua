@@ -15,6 +15,12 @@ function showMainFrame()
 		main_container:SetLayout("Fill")
 		main_container:SetWidth(800)
 		main_container:SetHeight(450)
+
+		-- Full black background covering the content area
+		local bg = main_container.frame:CreateTexture(nil, "BACKGROUND")
+		bg:SetAllPoints(main_container.content)
+		bg:SetColorTexture(0, 0, 0, 1)
+		
 		-- two different ways to close the widget
 		-- none of them are required due to the OnKeyDown register a bit down the code.
 		-- (Otherwise it will throw an exception - "double window.hide()")
