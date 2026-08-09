@@ -12,27 +12,7 @@ function TabProfessions:Build(parent)
     })
 
     tabs:AddPage("mining", function(p)
-        local scroll = AceGUI:Create("ScrollFrame")
-        scroll:SetLayout("List")
-
-		--[[
-        local description = AceGUI:Create("Label")
-        description:SetText("Mining content")
-        scroll:AddChild(description)
-		]]
-
-        local charSkillLbl = AceGUI:Create("Label")
-		local miningSkill = Functions_Professions:GetProfessionSkillNumber("Mining")
-		local charSkill = "Current Mining Skill: "
-		if miningSkill then
-			charSkill = charSkill .. miningSkill
-		else 
-			charSkill = charSkill .. "N/A"
-		end
-        charSkillLbl:SetText(charSkill)
-        scroll:AddChild(charSkillLbl)
-
-        return scroll
+        return Mining:Build(p)
     end)
 
     -- Return the underlying AceGUI TabGroup widget
