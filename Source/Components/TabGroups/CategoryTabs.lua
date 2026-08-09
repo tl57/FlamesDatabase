@@ -37,7 +37,7 @@ end
 -- Register a builder for a tab value
 function CategoryTabs:AddPage(value, builder)
     self.pages[value] = builder
-    if self.current == nil then
+    if self.current == nil or self.current == value then
         self:Render(value)
     end
 end

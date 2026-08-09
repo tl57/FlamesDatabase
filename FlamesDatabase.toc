@@ -11,6 +11,7 @@
 embeds.xml
 
 Localization/strings_en.lua
+Source/Components/TabGroups/TabProfessions.lua
 Source/Components/TabGroups/CategoryTabs.lua
 Source/mainframe.lua
 Source/changelogframe.lua

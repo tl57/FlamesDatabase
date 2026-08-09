@@ -41,20 +41,12 @@ function showMainFrame()
 	local tabs = CategoryTabs:New({
 		parent = main_container,
 		tabs = {
-			{ value = "professions", text = "Professions" },
+			{ value = "Professions", text = "Professions" },
 			{ value = "spells",      text = "Spells" },
 			{ value = "items",       text = "Items" },
 		},
 	})
-	tabs:AddPage("professions", function(parent)
-		local scroll = AceGUI:Create("ScrollFrame")
-		scroll:SetLayout("Flow")
-
-		local label = AceGUI:Create("Label")
-		label:SetText("Professions content")
-    	scroll:AddChild(label)
-		return scroll
-	end)
+	tabs:AddPage("Professions", TabProfessions.Build)
 
 	if debug then print("finished mainframe code") end
 end
