@@ -60,10 +60,10 @@ function OnEvent(self, event, ...)
     end
 end
 
-function ShowMainFrame()
-    if debug then print("showing main frame") end
-    showMainFrame()
-    if debug then print("finish showing main frame") end
+function ToggleMainFrame()
+    if debug then print("toggling main frame") end
+    toggleMainFrame()
+    if debug then print("finish toggling main frame") end
 end
 ------------------------------------------------------------
 -- MAIN UI FRAME

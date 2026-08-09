@@ -3,9 +3,11 @@ local addonName = ...
 local main_container = nil -- singleton: created once
 -- think about focusing a specific frame when having a profession open or in a specific dungeon
 
-function showMainFrame()
+function toggleMainFrame()
 	-- think about making the frame a singleton
 	if (main_container and main_container.frame:IsShown()) then
+		main_container.frame:Hide()
+		if debug then print("hidden mainframe") end
 		return
 	end
 
@@ -50,5 +52,5 @@ function showMainFrame()
 	})
 	tabs:AddPage("Professions", TabProfessions.Build)
 
-	if debug then print("finished mainframe code") end
+	if debug then print("finished showing mainframe code") end
 end

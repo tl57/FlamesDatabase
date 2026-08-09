@@ -12,7 +12,7 @@ function InitMinimapButton()
     icon = "Interface\\AddOns\\FlamesDatabase\\Images\\inv_misc_note_02.blp",
     OnClick = function(self, button)
       if button == "LeftButton" then
-        ShowMainFrame()
+        ToggleMainFrame()
       else
         ShowOptions()
       end
