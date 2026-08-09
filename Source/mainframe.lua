@@ -20,16 +20,16 @@ function showMainFrame()
 		local bg = main_container.frame:CreateTexture(nil, "BACKGROUND")
 		bg:SetAllPoints(main_container.content)
 		bg:SetColorTexture(0, 0, 0, 1)
-		
+
 		-- two different ways to close the widget
 		-- none of them are required due to the OnKeyDown register a bit down the code.
 		-- (Otherwise it will throw an exception - "double window.hide()")
 		--main_container:SetCallback("OnClose", function(widget) AceGUI:Release(widget); main_container = nil end)
-		--main_container:SetCallback("OnClose", function(widget) 
+		--main_container:SetCallback("OnClose", function(widget)
 		--	widget.Hide()
 		--end)
 
-	-- ESC to close via OnKeyDown (needs keyboard enabled)
+		-- ESC to close via OnKeyDown (needs keyboard enabled)
 		main_container.frame:EnableKeyboard(true)
 		main_container.frame:SetPropagateKeyboardInput(true)
 		main_container.frame:SetScript("OnKeyDown", function(self, key)
@@ -38,7 +38,8 @@ function showMainFrame()
 	end
 	main_container:Show()
 
-	local scrollFrame = AceGUI:Create("ScrollFrame") scrollFrame:SetLayout("Flow")
+	local scrollFrame = AceGUI:Create("ScrollFrame")
+	scrollFrame:SetLayout("Flow")
 	main_container:AddChild(scrollFrame)
 	scrollFrame:AddChild(AceGUI:Create("Label")) -- etc.
 
