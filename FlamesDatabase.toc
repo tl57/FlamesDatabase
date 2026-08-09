@@ -12,6 +12,8 @@ embeds.xml
 
 Localization/strings_en.lua
 Source/Tools/Functions/Professions.lua
+Source/Data/MiningData.lua
+Source/Components/DataTable.lua
 Source/Components/Pages/Mining.lua
 Source/Components/TabGroups/TabProfessions.lua
 Source/Components/TabGroups/CategoryTabs.lua

@@ -12,12 +12,16 @@ function Mining:Build(parent)
     local miningSkill = Functions_Professions:GetProfessionSkillNumber("Mining")
     local charSkill = "Current Mining Skill: "
     if miningSkill then
-        charSkill = charSkill .. miningSkill
+        charSkill = charSkill .. miningSkill .. "/300"
     else
         charSkill = charSkill .. "N/A"
     end
     charSkillLbl:SetText(charSkill)
     scroll:AddChild(charSkillLbl)
+
+    -- Node/skill table (data from MiningData.lua)
+    local table = DataTable:Build(parent, MiningData)
+    scroll:AddChild(table)
 
     return scroll
 end
