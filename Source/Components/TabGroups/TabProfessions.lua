@@ -13,7 +13,7 @@ function TabProfessions:Build(parent)
 
     tabs:AddPage("mining", function(p)
         local scroll = AceGUI:Create("ScrollFrame")
-        scroll:SetLayout("Flow")
+        scroll:SetLayout("List")
 
         local label = AceGUI:Create("Label")
         label:SetText("Mining content")
