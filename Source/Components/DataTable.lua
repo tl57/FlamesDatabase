@@ -1,11 +1,11 @@
 --[[-----------------------------------------------------------------------------
 DataTable
-A reusable columnar table component built on Blizzard's ScrollBox API.
+A reusable columnar table component. Sized to fit all of its rows; relies on
+the surrounding page to provide scrolling if the table doesn't fit.
 
 Takes a declarative structure:
     DataTable:Build(parent, {
-        width   = 700,          -- optional, default 800
-        height  = 300,          -- optional, default 300
+        width   = 700,          -- optional, default is the sum of column widths
         columns = {
             { id = "Name", width = 200 },
             { id = "OrangeClassicMine", width = 60 },
@@ -61,29 +61,26 @@ local function AddBorder(frame)
     edges[4]:SetWidth(t)
 end
 
--- Initializer used by the ScrollBox view for each row element.
--- `data` is the row table, which carries the column layout via `data.columns`.
-local function RowInitializer(frame, data)
-    local columns = data.columns or {}
-    if not frame.cells then
-        frame.cells = {}
-    end
-    for idx, col in ipairs(columns) do
-        local cell = frame.cells[idx]
-        if not cell then
-            -- Each cell is a Frame with a thin border + inner text.
-            cell = CreateFrame("Frame", nil, frame)
-            frame.cells[idx] = cell
-            AddBorder(cell)
-            cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            cell.text:SetJustifyH("LEFT")
-            cell.text:SetPoint("LEFT", PADDING, 0)
-            cell.text:SetPoint("RIGHT", -PADDING, 0)
-        end
-        cell:ClearAllPoints()
+-- Build one row's cells directly under `container`, anchored at a fixed
+-- vertical offset. No pooling/virtualization: every row gets its own frame,
+-- and the table is sized to fit all of them (the page around it scrolls).
+local function BuildRow(container, row, columns, yOffset)
+    local frame = CreateFrame("Frame", nil, container)
+    frame:SetPoint("TOPLEFT", container, "TOPLEFT", 0, yOffset)
+    frame:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, yOffset)
+    frame:SetHeight(ROW_HEIGHT)
+
+    for _, col in ipairs(columns) do
+        local cell = CreateFrame("Frame", nil, frame)
+        AddBorder(cell)
         cell:SetPoint("TOPLEFT", frame, "TOPLEFT", col._x, 0)
         cell:SetSize(col.width, ROW_HEIGHT)
-        cell.text:SetText(data[col.id] or "")
+
+        local text = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        text:SetJustifyH("LEFT")
+        text:SetPoint("LEFT", PADDING, 0)
+        text:SetPoint("RIGHT", -PADDING, 0)
+        text:SetText(row[col.id] or "")
     end
 end
 
@@ -102,10 +99,10 @@ function DataTable:Build(parent, options)
     end
     local totalWidth = x
 
-    local width = options.width or 800
-    local height = options.height or 300
+    local width = options.width or totalWidth
+    local height = HEADER_HEIGHT + (#rows * ROW_HEIGHT)
 
-    -- Container frame hosting header + scrollbox.
+    -- Container frame hosting header + rows.
     local group = AceGUI:Create("SimpleGroup")
     group:SetLayout("Fill")
     local container = group.frame
@@ -133,28 +130,11 @@ function DataTable:Build(parent, options)
         fs:SetPoint("RIGHT", -PADDING, 0)
     end
 
-    -- ScrollBox + scrollbar (the ScrollBox is itself the scroll container).
-    local scrollBox = CreateFrame("Frame", nil, container, "WowScrollBoxList")
-    scrollBox:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, 0)
-    scrollBox:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", 0, 0)
-
-    local scrollBar = CreateFrame("EventFrame", nil, container, "MinimalScrollBar")
-    scrollBar:SetPoint("TOPRIGHT", container, "TOPRIGHT", -2, 0)
-    scrollBar:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", -2, 0)
-
-    local view = CreateScrollBoxListLinearView()
-    view:SetElementExtent(ROW_HEIGHT)
-    view:SetElementInitializer("Button", RowInitializer)
-
-    ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view)
-
-    -- Attach the column layout to each row so the initializer can read it.
-    local dataProvider = CreateDataProvider()
-    for _, row in ipairs(rows) do
-        row.columns = columns
-        dataProvider:Insert(row)
+    -- Rows, stacked directly below the header. No inner scrollbar: the page
+    -- around this table already scrolls, so the table is just as tall as its data.
+    for idx, row in ipairs(rows) do
+        BuildRow(container, row, columns, -(HEADER_HEIGHT + (idx - 1) * ROW_HEIGHT))
     end
-    scrollBox:SetDataProvider(dataProvider, true)
 
     return group
 end
