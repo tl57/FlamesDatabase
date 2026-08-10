@@ -7,7 +7,7 @@ local tbcWidth = 40
 
 MiningData = {
     columns = {
-        { id = "Name",               width = namWidth, name = "Name" },
+        { id = "Name",               width = namWidth, name = "" },
         { id = "OrangeClassicMine",  width = claWidth, name = "Classic", background = "orange" },
         { id = "YellowClassicMine",  width = claWidth, name = "Classic", background = "yellow" },
         { id = "GreenClassicMine",   width = claWidth, name = "Classic", background = "green" },
