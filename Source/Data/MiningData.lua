@@ -1,30 +1,27 @@
 -- MiningData
 -- Static data for the Mining profession node/skill table.
 -- Exposes global MiningData with columns and rows, consumed by Mining.lua via DataTable.
-local namWidth = 100
-local claWidth = 37
-local tbcWidth = 37
 
 MiningData = {
     profession = "Mining",
     columns = {
-        { id = "Name",               width = namWidth },
-        { id = "OrangeClassicMine",  width = claWidth, exp = "Classic", background = "orange", group = "Mine" },
-        { id = "YellowClassicMine",  width = claWidth, exp = "Classic", background = "yellow", group = "Mine" },
-        { id = "GreenClassicMine",   width = claWidth, exp = "Classic", background = "green",  group = "Mine" },
-        { id = "GreyClassicMine",    width = claWidth, exp = "Classic", background = "grey",   group = "Mine" },
-        { id = "OrangeClassicSmelt", width = claWidth, exp = "Classic", background = "orange", group = "Smelt" },
-        { id = "YellowClassicSmelt", width = claWidth, exp = "Classic", background = "yellow", group = "Smelt" },
-        { id = "GreenClassicSmelt",  width = claWidth, exp = "Classic", background = "green",  group = "Smelt" },
-        { id = "GreyClassicSmelt",   width = claWidth, exp = "Classic", background = "grey",   group = "Smelt" },
-        { id = "OrangeTBCMine",      width = tbcWidth, exp = "TBC",     background = "orange", group = "Mine" },
-        { id = "YellowTBCMine",      width = tbcWidth, exp = "TBC",     background = "yellow", group = "Mine" },
-        { id = "GreenTBCMine",       width = tbcWidth, exp = "TBC",     background = "green",  group = "Mine" },
-        { id = "GreyTBCMine",        width = tbcWidth, exp = "TBC",     background = "grey",   group = "Mine" },
-        { id = "OrangeTBCSmelt",     width = tbcWidth, exp = "TBC",     background = "orange", group = "Smelt" },
-        { id = "YellowTBCSmelt",     width = tbcWidth, exp = "TBC",     background = "yellow", group = "Smelt" },
-        { id = "GreenTBCSmelt",      width = tbcWidth, exp = "TBC",     background = "green",  group = "Smelt" },
-        { id = "GreyTBCSmelt",       width = tbcWidth, exp = "TBC",     background = "grey",   group = "Smelt" },
+        { id = "Name",               width = 100 },
+        { id = "OrangeClassicMine",  width = 37, exp = "Classic", background = "orange", group = "Mine" },
+        { id = "YellowClassicMine",  width = 37, exp = "Classic", background = "yellow", group = "Mine" },
+        { id = "GreenClassicMine",   width = 37, exp = "Classic", background = "green",  group = "Mine" },
+        { id = "GreyClassicMine",    width = 37, exp = "Classic", background = "grey",   group = "Mine" },
+        { id = "OrangeClassicSmelt", width = 37, exp = "Classic", background = "orange", group = "Smelt" },
+        { id = "YellowClassicSmelt", width = 37, exp = "Classic", background = "yellow", group = "Smelt" },
+        { id = "GreenClassicSmelt",  width = 37, exp = "Classic", background = "green",  group = "Smelt" },
+        { id = "GreyClassicSmelt",   width = 37, exp = "Classic", background = "grey",   group = "Smelt" },
+        { id = "OrangeTBCMine",      width = 37, exp = "TBC",     background = "orange", group = "Mine" },
+        { id = "YellowTBCMine",      width = 37, exp = "TBC",     background = "yellow", group = "Mine" },
+        { id = "GreenTBCMine",       width = 37, exp = "TBC",     background = "green",  group = "Mine" },
+        { id = "GreyTBCMine",        width = 37, exp = "TBC",     background = "grey",   group = "Mine" },
+        { id = "OrangeTBCSmelt",     width = 37, exp = "TBC",     background = "orange", group = "Smelt" },
+        { id = "YellowTBCSmelt",     width = 37, exp = "TBC",     background = "yellow", group = "Smelt" },
+        { id = "GreenTBCSmelt",      width = 37, exp = "TBC",     background = "green",  group = "Smelt" },
+        { id = "GreyTBCSmelt",       width = 37, exp = "TBC",     background = "grey",   group = "Smelt" },
     },
     rows = {
         {
