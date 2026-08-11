@@ -223,14 +223,15 @@ local function BuildRow(container, row, columns, yOffset, skill)
         cell:SetPoint("TOPLEFT", frame, "TOPLEFT", col._x, 0)
         LayoutCell(cell, col.width, ROW_HEIGHT)
 
-        local tint = col.background and CELL_BACKGROUND_COLORS[col.background]
+        local value = row[col.id]
+
+        local tint = value ~= nil and col.background and CELL_BACKGROUND_COLORS[col.background]
         if tint then
             cell.bg:SetAllPoints(cell)
             cell.bg:SetColorTexture(tint[1], tint[2], tint[3], CELL_BACKGROUND_ALPHA)
             cell.bg:Show()
         end
 
-        local value = row[col.id]
         cell.text:SetJustifyH("LEFT")
         cell.text:SetText(value or "")
 
