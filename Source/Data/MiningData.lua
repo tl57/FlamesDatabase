@@ -6,6 +6,7 @@ local claWidth = 37
 local tbcWidth = 37
 
 MiningData = {
+    profession = "Mining",
     columns = {
         { id = "Name",               width = namWidth },
         { id = "OrangeClassicMine",  width = claWidth, exp = "Classic", background = "orange", group = "Mine" },

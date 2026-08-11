@@ -50,6 +50,28 @@ local CELL_BACKGROUND_COLORS = {
     grey   = { 0.55, 0.55, 0.55 },
 }
 
+-- Text colors for a numeric cell, based on (playerSkill - cellValue).
+local SKILL_DIFF_RED    = { 0.90, 0.15, 0.15 }
+local SKILL_DIFF_ORANGE = { 0.90, 0.55, 0.15 }
+local SKILL_DIFF_YELLOW = { 0.85, 0.85, 0.15 }
+local SKILL_DIFF_GREEN  = { 0.35, 0.75, 0.35 }
+local SKILL_DIFF_GREY   = { 0.60, 0.60, 0.60 }
+
+-- diff < 0: red. 0-25: orange. 26-50: yellow. 51-75: green. 100+: grey.
+local function SkillDiffColor(diff)
+    if diff < 0 then
+        return SKILL_DIFF_RED
+    elseif diff <= 25 then
+        return SKILL_DIFF_ORANGE
+    elseif diff <= 50 then
+        return SKILL_DIFF_YELLOW
+    elseif diff <= 100 then
+        return SKILL_DIFF_GREEN
+    else
+        return SKILL_DIFF_GREY
+    end
+end
+
 -- Draw a thin border around a frame using 4 edge textures.
 local function AddBorder(frame)
     local edges = {}
@@ -101,7 +123,7 @@ end
 -- Build one row's cells directly under `container`, anchored at a fixed
 -- vertical offset. No pooling/virtualization: every row gets its own frame,
 -- and the table is sized to fit all of them (the page around it scrolls).
-local function BuildRow(container, row, columns, yOffset)
+local function BuildRow(container, row, columns, yOffset, skill)
     local frame = CreateFrame("Frame", nil, container)
     frame:SetPoint("TOPLEFT", container, "TOPLEFT", 0, yOffset)
     frame:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, yOffset)
@@ -121,11 +143,17 @@ local function BuildRow(container, row, columns, yOffset)
 
         AddBorder(cell)
 
+        local value = row[col.id]
         local text = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         text:SetJustifyH("LEFT")
         text:SetPoint("LEFT", PADDING, 0)
         text:SetPoint("RIGHT", -PADDING, 0)
-        text:SetText(row[col.id] or "")
+        text:SetText(value or "")
+
+        if skill and type(value) == "number" then
+            local color = SkillDiffColor(skill - value)
+            text:SetTextColor(color[1], color[2], color[3])
+        end
     end
 end
 
@@ -236,10 +264,14 @@ function DataTable:Build(parent, options)
         i = i + 1
     end
 
+    -- When `profession` is given and the character has it, numeric cells are
+    -- colorized by (skill - cellValue) via SkillDiffColor. Otherwise untouched.
+    local skill = options.profession and Functions_Professions:GetProfessionSkillNumber(options.profession)
+
     -- Rows, stacked directly below the header. No inner scrollbar: the page
     -- around this table already scrolls, so the table is just as tall as its data.
     for idx, row in ipairs(rows) do
-        BuildRow(container, row, columns, -(superHeaderHeight + HEADER_HEIGHT + (idx - 1) * ROW_HEIGHT))
+        BuildRow(container, row, columns, -(superHeaderHeight + HEADER_HEIGHT + (idx - 1) * ROW_HEIGHT), skill)
     end
 
     return group
