@@ -18,6 +18,17 @@ function toggleMainFrame()
 		main_container:SetWidth(800)
 		main_container:SetHeight(450)
 
+		-- Floor the resizable width at the default (AceGUI's own Window
+		-- widget defaults to a 240px minimum, which is narrower than
+		-- Mining's DataTable). The ScrollFrame only scrolls vertically,
+		-- so there's no way to reach content narrower than the window;
+		-- keeping width >= 800 avoids the table ever getting clipped.
+		if main_container.frame.SetResizeBounds then
+			main_container.frame:SetResizeBounds(800, 240)
+		else
+			main_container.frame:SetMinResize(800, 240)
+		end
+
 		--[[
 		-- Full black background covering the content area
 		local bg = main_container.frame:CreateTexture(nil, "BACKGROUND")
