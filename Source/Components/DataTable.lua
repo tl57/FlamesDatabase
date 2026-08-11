@@ -206,7 +206,19 @@ local function BuildRow(container, row, columns, yOffset, skill)
     frame:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, yOffset)
     frame:SetHeight(ROW_HEIGHT)
 
-    for _, col in ipairs(columns) do
+    -- The first (id/name) column borrows the skill-diff color computed for
+    -- the second column, so its color reflects this row's status at a glance
+    -- without needing to look further right.
+    local nameColor
+    local secondCol = columns[2]
+    if skill and secondCol then
+        local secondValue = row[secondCol.id]
+        if type(secondValue) == "number" then
+            nameColor = SkillDiffColor(skill - secondValue)
+        end
+    end
+
+    for i, col in ipairs(columns) do
         local cell = AcquireCell(container, frame)
         cell:SetPoint("TOPLEFT", frame, "TOPLEFT", col._x, 0)
         LayoutCell(cell, col.width, ROW_HEIGHT)
@@ -225,6 +237,8 @@ local function BuildRow(container, row, columns, yOffset, skill)
         if skill and type(value) == "number" then
             local color = SkillDiffColor(skill - value)
             cell.text:SetTextColor(color[1], color[2], color[3])
+        elseif i == 1 and nameColor then
+            cell.text:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
         end
     end
 end
