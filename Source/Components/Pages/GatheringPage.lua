@@ -13,15 +13,15 @@ local AceGUI = LibStub("AceGUI-3.0")
 
 GatheringPage = {}
 
--- Expansion names indexed by LE_EXPANSION_* + 1.
-local EXPANSION_NAMES = { "Classic", "TBC", "WotLK", "Cataclysm" }
-
 -- A row of mutually-exclusive radio buttons, one per expansion this addon
 -- knows about (Functions_General:GetExpansionLevels), with the one matching
 -- the realm's current expansion pre-selected. AceGUI has no dedicated
 -- RadioGroup widget, so this is built from CheckBox widgets in "radio" mode
--- with manual exclusivity handling.
-local function BuildExpansionRadioGroup()
+-- with manual exclusivity handling. `onSelect(level)` fires whenever the user
+-- picks a different button (not for the initial pre-selection - the caller
+-- already gets that back as the second return value).
+-- Returns the group widget and the initially selected level.
+local function BuildExpansionRadioGroup(onSelect)
     local currentLevel = Functions_General:GetServerExpansionLevel()
     local levels = Functions_General:GetExpansionLevels()
 
@@ -43,7 +43,7 @@ local function BuildExpansionRadioGroup()
     for i, level in ipairs(levels) do
         local button = AceGUI:Create("CheckBox")
         button:SetType("radio")
-        button:SetLabel(EXPANSION_NAMES[i] or ("Expansion " .. level))
+        button:SetLabel(Functions_General:GetExpansionName(level))
         button:SetWidth(90)
         button:SetValue(i == selected)
         button:SetCallback("OnValueChanged", function(widget, _, checked)
@@ -53,6 +53,7 @@ local function BuildExpansionRadioGroup()
                         other:SetValue(false)
                     end
                 end
+                onSelect(level)
             else
                 -- Radio buttons shouldn't be deselectable by clicking the
                 -- already-selected one - keep exactly one checked at all times.
@@ -63,7 +64,7 @@ local function BuildExpansionRadioGroup()
         group:AddChild(button)
     end
 
-    return group
+    return group, levels[selected]
 end
 
 -- Adds the skill label + spacer + expansion radio group + spacer + DataTable
@@ -106,13 +107,31 @@ function GatheringPage:AddHeader(scroll, parent, profession, data)
     spacer:SetHeight(12)
     scroll:AddChild(spacer)
 
-    scroll:AddChild(BuildExpansionRadioGroup())
+    -- Replaced in place (see RebuildTable) whenever the radio group's
+    -- selected expansion changes, rather than rebuilding the whole page.
+    local tableWidget
+
+    local function RebuildTable(selectedExpansion)
+        if tableWidget then
+            for idx, child in ipairs(scroll.children) do
+                if child == tableWidget then
+                    table.remove(scroll.children, idx)
+                    break
+                end
+            end
+            AceGUI:Release(tableWidget)
+        end
+        tableWidget = DataTable:Build(parent, data, selectedExpansion)
+        scroll:AddChild(tableWidget)
+    end
+
+    local radioGroup, initialExpansion = BuildExpansionRadioGroup(RebuildTable)
+    scroll:AddChild(radioGroup)
 
     local spacer2 = AceGUI:Create("SimpleGroup")
     spacer2:SetAutoAdjustHeight(false)
     spacer2:SetHeight(12)
     scroll:AddChild(spacer2)
 
-    local table = DataTable:Build(parent, data)
-    scroll:AddChild(table)
+    RebuildTable(initialExpansion)
 end

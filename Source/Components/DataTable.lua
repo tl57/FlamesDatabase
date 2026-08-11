@@ -8,22 +8,23 @@ Takes a declarative structure:
         width   = 700,          -- optional, default is the sum of column widths
         columns = {
             { id = "Name", width = 200 },
-            { id = "OrangeClassicMine", width = 60, group = "Mine" },
+            { id = "OrangeClassicMine", width = 60, group = "Mine", exp = LE_EXPANSION_CLASSIC },
             ...
         },
         rows = {
             { Name = "Copper Vein", OrangeClassicMine = 1, ... },
             ...
         },
-    })
+    }, selectedExpansion)
 
 Rows are keyed by column id. Values that are nil render as empty cells.
-There are up to two header rows: consecutive columns sharing the same `exp`
-value are merged into a cell in a super-header row above the regular header,
-and consecutive columns sharing the same `group` value are merged into a cell
-in the regular header row. Columns with neither `exp` nor `group` (e.g. an
-id/name column) span both header rows; other columns show column.title if
-provided, else column.name.
+Consecutive columns sharing the same `group` value are merged into one header
+cell; other columns show column.title if provided, else column.name.
+
+When `selectedExpansion` is given (one of Functions_General:GetExpansionLevels()),
+only columns with no `exp` or with `exp == selectedExpansion` are included -
+`exp` otherwise has no visual effect of its own (no separate header row for
+it), it's purely a filtering key.
 
 Row/header frames are pooled per AceGUI SimpleGroup and reused across rebuilds
 (see AcquireRow/AcquireCell) rather than always creating new ones - AceGUI
@@ -81,8 +82,8 @@ end
 
 -- Returns the next reusable plain wrapper frame from `container`'s row pool
 -- (creating one if the pool doesn't have enough yet), parented under `parent`
--- and reset to a blank state. Used for the super-header/header rows and each
--- data row. `container.rowsUsed` must be reset to 0 at the start of a build.
+-- and reset to a blank state. Used for the header row and each data row.
+-- `container.rowsUsed` must be reset to 0 at the start of a build.
 local function AcquireRow(container, parent)
     container.rowPool = container.rowPool or {}
     container.rowsUsed = container.rowsUsed + 1
@@ -175,27 +176,6 @@ local function LayoutCell(cell, width, height, skipTop, skipLeft)
     cell.edgeRight:SetWidth(t)
 end
 
--- Returns a list of { first, last, value } index ranges where consecutive
--- columns share the same non-nil value for columns[i][field].
-local function GroupedSpans(columns, field)
-    local spans = {}
-    local i = 1
-    while i <= #columns do
-        local value = columns[i][field]
-        if value then
-            local last = i
-            while columns[last + 1] and columns[last + 1][field] == value do
-                last = last + 1
-            end
-            spans[#spans + 1] = { first = i, last = last, value = value }
-            i = last + 1
-        else
-            i = i + 1
-        end
-    end
-    return spans
-end
-
 -- Build one row's cells directly under `container`, anchored at a fixed
 -- vertical offset. The table is sized to fit all of them (the page around it
 -- scrolls).
@@ -245,11 +225,25 @@ local function BuildRow(container, row, columns, yOffset, skill)
     end
 end
 
--- Build the table into an AceGUI SimpleGroup and return it.
-function DataTable:Build(parent, options)
+-- Build the table into an AceGUI SimpleGroup and return it. When
+-- `selectedExpansion` is given, only columns with no `exp` (e.g. the id/name
+-- column) or with `exp == selectedExpansion` are included - everything else
+-- (and any row data only reachable through those columns) is left out
+-- entirely, not just hidden.
+function DataTable:Build(parent, options, selectedExpansion)
     options = options or {}
     local columns = options.columns or {}
     local rows = options.rows or {}
+
+    if selectedExpansion then
+        local filtered = {}
+        for _, col in ipairs(columns) do
+            if not col.exp or col.exp == selectedExpansion then
+                filtered[#filtered + 1] = col
+            end
+        end
+        columns = filtered
+    end
 
     -- Precompute each column's left x-offset.
     local x = 0
@@ -260,19 +254,8 @@ function DataTable:Build(parent, options)
     end
     local totalWidth = x
 
-    -- Columns with an `exp` field get a super-header row above the regular
-    -- header, merging consecutive columns that share the same value.
-    local hasExp = false
-    for _, col in ipairs(columns) do
-        if col.exp then
-            hasExp = true
-            break
-        end
-    end
-    local superHeaderHeight = hasExp and HEADER_HEIGHT or 0
-
     local width = options.width or totalWidth
-    local height = superHeaderHeight + HEADER_HEIGHT + (#rows * ROW_HEIGHT)
+    local height = HEADER_HEIGHT + (#rows * ROW_HEIGHT)
 
     -- Container frame hosting header + rows.
     local group = AceGUI:Create("SimpleGroup")
@@ -316,31 +299,11 @@ function DataTable:Build(parent, options)
     container.rowsUsed = 0
     container.cellsUsed = 0
 
-    -- Super header row, merging consecutive columns that share an `exp` value.
-    if hasExp then
-        local superHeader = AcquireRow(container, container)
-        superHeader:SetPoint("TOPLEFT", container, "TOPLEFT", 0, 0)
-        superHeader:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, 0)
-        superHeader:SetHeight(superHeaderHeight)
-        superHeader.bg:SetAllPoints(superHeader)
-        superHeader.bg:SetColorTexture(0.1, 0.1, 0.1, 0.6)
-        superHeader.bg:Show()
-
-        for _, span in ipairs(GroupedSpans(columns, "exp")) do
-            local first, last = columns[span.first], columns[span.last]
-            local cell = AcquireCell(container, superHeader)
-            cell:SetPoint("TOPLEFT", superHeader, "TOPLEFT", first._x, 0)
-            LayoutCell(cell, (last._x + last.width) - first._x, superHeaderHeight)
-            cell.text:SetJustifyH("CENTER")
-            cell.text:SetText(span.value)
-        end
-    end
-
     -- Header row. Consecutive columns sharing a `group` value are merged into
-    -- one cell; columns with neither `group` nor `exp` span both header rows.
+    -- one cell; other columns show column.title if provided, else column.name.
     local header = AcquireRow(container, container)
-    header:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -superHeaderHeight)
-    header:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, -superHeaderHeight)
+    header:SetPoint("TOPLEFT", container, "TOPLEFT", 0, 0)
+    header:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, 0)
     header:SetHeight(HEADER_HEIGHT)
     header.bg:SetAllPoints(header)
     header.bg:SetColorTexture(0.1, 0.1, 0.1, 0.6)
@@ -350,8 +313,6 @@ function DataTable:Build(parent, options)
     while i <= #columns do
         local col = columns[i]
         local cellWidth = col.width
-        local cellHeight = HEADER_HEIGHT
-        local yOffset = 0
         local label = col.title or col.name
         local justify = "LEFT"
 
@@ -364,17 +325,13 @@ function DataTable:Build(parent, options)
             label = col.group
             justify = "CENTER"
             i = last
-        elseif not col.exp then
-            -- No header value at either tier: stretch to cover both rows.
-            cellHeight = superHeaderHeight + HEADER_HEIGHT
-            yOffset = superHeaderHeight
         end
 
         local cell = AcquireCell(container, header)
-        cell:SetPoint("TOPLEFT", header, "TOPLEFT", col._x, yOffset)
+        cell:SetPoint("TOPLEFT", header, "TOPLEFT", col._x, 0)
         -- The table's very first cell (top-left corner) omits its top/left
         -- edges so it doesn't double up against the surrounding page chrome.
-        LayoutCell(cell, cellWidth, cellHeight, i == 1, i == 1)
+        LayoutCell(cell, cellWidth, HEADER_HEIGHT, i == 1, i == 1)
         cell.text:SetJustifyH(justify)
         cell.text:SetText(label or "")
 
@@ -388,7 +345,7 @@ function DataTable:Build(parent, options)
     -- Rows, stacked directly below the header. No inner scrollbar: the page
     -- around this table already scrolls, so the table is just as tall as its data.
     for idx, row in ipairs(rows) do
-        BuildRow(container, row, columns, -(superHeaderHeight + HEADER_HEIGHT + (idx - 1) * ROW_HEIGHT), skill)
+        BuildRow(container, row, columns, -(HEADER_HEIGHT + (idx - 1) * ROW_HEIGHT), skill)
     end
 
     -- Hide any pooled rows/cells left over from a build with more rows or

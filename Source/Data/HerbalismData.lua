@@ -7,14 +7,14 @@ HerbalismData = {
     profession = "Herbalism",
     columns = {
         { id = "Name",              width = 100 },
-        { id = "OrangeClassicHerb", width = 37, exp = "Classic", background = "orange", group = "Herb" },
-        { id = "YellowClassicHerb", width = 37, exp = "Classic", background = "yellow", group = "Herb" },
-        { id = "GreenClassicHerb",  width = 37, exp = "Classic", background = "green",  group = "Herb" },
-        { id = "GreyClassicHerb",   width = 37, exp = "Classic", background = "grey",   group = "Herb" },
-        { id = "OrangeTBCHerb",     width = 37, exp = "TBC",     background = "orange", group = "Herb" },
-        { id = "YellowTBCHerb",     width = 37, exp = "TBC",     background = "yellow", group = "Herb" },
-        { id = "GreenTBCHerb",      width = 37, exp = "TBC",     background = "green",  group = "Herb" },
-        { id = "GreyTBCHerb",       width = 37, exp = "TBC",     background = "grey",   group = "Herb" },
+        { id = "OrangeClassicHerb", width = 37, exp = LE_EXPANSION_CLASSIC,         background = "orange", group = "Herb" },
+        { id = "YellowClassicHerb", width = 37, exp = LE_EXPANSION_CLASSIC,         background = "yellow", group = "Herb" },
+        { id = "GreenClassicHerb",  width = 37, exp = LE_EXPANSION_CLASSIC,         background = "green",  group = "Herb" },
+        { id = "GreyClassicHerb",   width = 37, exp = LE_EXPANSION_CLASSIC,         background = "grey",   group = "Herb" },
+        { id = "OrangeTBCHerb",     width = 37, exp = LE_EXPANSION_BURNING_CRUSADE, background = "orange", group = "Herb" },
+        { id = "YellowTBCHerb",     width = 37, exp = LE_EXPANSION_BURNING_CRUSADE, background = "yellow", group = "Herb" },
+        { id = "GreenTBCHerb",      width = 37, exp = LE_EXPANSION_BURNING_CRUSADE, background = "green",  group = "Herb" },
+        { id = "GreyTBCHerb",       width = 37, exp = LE_EXPANSION_BURNING_CRUSADE, background = "grey",   group = "Herb" },
     },
     rows = {
         {
