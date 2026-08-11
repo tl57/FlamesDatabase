@@ -33,8 +33,13 @@ function Mining:Build(parent)
     scroll:AddChild(charSkillLbl)
 
     -- Spacer so the table doesn't sit flush against the label above it.
-    local spacer = AceGUI:Create("Label")
-    spacer:SetFullWidth(true)
+    -- A SimpleGroup rather than a Label: Label recomputes its own height
+    -- from its FontString's text any time UpdateImageAnchor runs, which
+    -- clobbers a manually set height. SimpleGroup only auto-resizes via
+    -- LayoutFinished (summing its children's height), which SetAutoAdjustHeight
+    -- disables outright, leaving our explicit height alone.
+    local spacer = AceGUI:Create("SimpleGroup")
+    spacer:SetAutoAdjustHeight(false)
     spacer:SetHeight(12)
     scroll:AddChild(spacer)
 
