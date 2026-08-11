@@ -107,7 +107,7 @@ MiningData = {
             GreenTBCSmelt = 122,
             GreyClassicSmelt = 125,
             GreyTBCSmelt = 130,
-            Info = "Wetlands, Barrens (caves with mostly Tin spawns)",
+            Info = "Wetlands, Barrens (caves with Tin spawns)",
         },
         {
             Name = "Iron",
@@ -169,7 +169,7 @@ MiningData = {
             GreenTBCSmelt = 177,
             GreyClassicSmelt = 185,
             GreyTBCSmelt = 185,
-            Info = "Badlands (caves with mostly Iron spawns)",
+            Info = "Badlands (caves with Iron spawns)",
         },
         {
             Name = "Mithril",
@@ -211,7 +211,7 @@ MiningData = {
             GreenTBCSmelt = 242,
             GreyClassicSmelt = 230,
             GreyTBCSmelt = 250,
-            Info = "Caves with mostly Mithril spawns",
+            Info = "Caves with Mithril spawns",
         },
         {
             Name = "Dark Iron",
