@@ -10,9 +10,16 @@ function Mining:Build(parent)
 
     local charSkillLbl = AceGUI:Create("Label")
     local miningSkill = Functions_Professions:GetProfessionSkillNumber("Mining")
+    local maxMiningSkill = Functions_Professions:GetProfessionMaxSkillNumber("Mining")
+
     local charSkill = "Current Mining Skill: "
     if miningSkill then
-        charSkill = charSkill .. miningSkill .. "/300"
+        charSkill = charSkill .. miningSkill .. "/".. maxMiningSkill
+        
+        local shouldGoTrain = Functions_Professions:GetProfessionShouldGoLearn(miningSkill, maxMiningSkill, "Mining")
+        if (shouldGoTrain) then
+            charSkill = charSkill .. " You should go train soon!"
+        end
     else
         charSkill = charSkill .. "N/A"
     end
