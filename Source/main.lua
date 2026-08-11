@@ -3,7 +3,8 @@ local addonName = ...
 -- load account-wide saved variables
 FlamesDatabase = FlamesDatabase or {}
 -- get current addon version
-local version = C_AddOns.GetAddOnMetadata(addonName, "Version")
+local GetAddOnMetadata = GetAddOnMetadata or C_AddOns.GetAddOnMetadata
+local version = GetAddOnMetadata(addonName, "Version")
 -- debug variable
 debug = true
 print("FlamesDatabase loaded!")
