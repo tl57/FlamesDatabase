@@ -39,18 +39,21 @@ function toggleMainFrame()
 		main_container.frame:SetScript("OnKeyDown", function(self, key)
 			if key == "ESCAPE" then self:Hide() end
 		end)
+
+		-- Tab tree (and everything under it, e.g. Mining's DataTable) is built
+		-- once here and reused on subsequent opens via Show/Hide below, instead
+		-- of being rebuilt from scratch - and leaked - on every toggle.
+		local tabs = CategoryTabs:New({
+			parent = main_container,
+			tabs = {
+				{ value = "Professions", text = "Professions" },
+				{ value = "spells",      text = "Spells" },
+				{ value = "items",       text = "Items" },
+			},
+		})
+		tabs:AddPage("Professions", TabProfessions.Build)
 	end
 	main_container:Show()
-
-	local tabs = CategoryTabs:New({
-		parent = main_container,
-		tabs = {
-			{ value = "Professions", text = "Professions" },
-			{ value = "spells",      text = "Spells" },
-			{ value = "items",       text = "Items" },
-		},
-	})
-	tabs:AddPage("Professions", TabProfessions.Build)
 
 	if debug then print("finished showing mainframe code") end
 end
