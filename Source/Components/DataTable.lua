@@ -205,16 +205,21 @@ local function BuildRow(container, row, columns, yOffset, skill)
     frame:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, yOffset)
     frame:SetHeight(ROW_HEIGHT)
 
-    -- The first (id/name) column borrows the skill-diff color computed for
-    -- the second column, so its color reflects this row's status at a glance
-    -- without needing to look further right.
+    -- The first (id/name) column borrows the skill-diff color of the first
+    -- other column that has a number in this row, so its color reflects this
+    -- row's status at a glance without needing to look further right. Grey
+    -- if none of the other columns have a number for this row.
     local nameColor
-    local secondCol = columns[2]
-    if skill and secondCol then
-        local secondValue = row[secondCol.id]
-        if type(secondValue) == "number" then
-            nameColor = SkillDiffColor(skill - secondValue)
+    if skill then
+        local firstValue
+        for i = 2, #columns do
+            local value = row[columns[i].id]
+            if type(value) == "number" then
+                firstValue = value
+                break
+            end
         end
+        nameColor = firstValue and SkillDiffColor(skill - firstValue) or SKILL_DIFF_GREY
     end
 
     for i, col in ipairs(columns) do
