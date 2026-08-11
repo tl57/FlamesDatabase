@@ -22,6 +22,7 @@ MiningData = {
         { id = "YellowTBCSmelt",     width = 37, exp = LE_EXPANSION_BURNING_CRUSADE, background = "yellow", group = "Smelt" },
         { id = "GreenTBCSmelt",      width = 37, exp = LE_EXPANSION_BURNING_CRUSADE, background = "green",  group = "Smelt" },
         { id = "GreyTBCSmelt",       width = 37, exp = LE_EXPANSION_BURNING_CRUSADE, background = "grey",   group = "Smelt" },
+        { id = "Info",              width = 310, group = "Info" },
     },
     rows = {
         {
@@ -42,6 +43,7 @@ MiningData = {
             GreenTBCSmelt = 47,
             GreyClassicSmelt = 70,
             GreyTBCSmelt = 70,
+            Info = "All 1-10 zones except Teldrassil; Barrens, Darkshore",
         },
         {
             Name = "Tin",
@@ -61,6 +63,7 @@ MiningData = {
             GreenTBCSmelt = 70,
             GreyClassicSmelt = 75,
             GreyTBCSmelt = 75,
+            Info = "Wetlands, Barrens, Westfall, Redridge",
         },
         {
             Name = "Bronze",
@@ -99,6 +102,7 @@ MiningData = {
             GreenTBCSmelt = 122,
             GreyClassicSmelt = 125,
             GreyTBCSmelt = 130,
+            Info = "Wetlands, Barrens (caves that have mostly Tin spawns)",
         },
         {
             Name = "Iron",
@@ -118,6 +122,7 @@ MiningData = {
             GreenTBCSmelt = 145,
             GreyClassicSmelt = 140,
             GreyTBCSmelt = 160,
+            Info = "Arathi, Thousand Needles, Alterac, Desolace, Badlands",
         },
         {
             Name = "Steel",
@@ -156,6 +161,7 @@ MiningData = {
             GreenTBCSmelt = 177,
             GreyClassicSmelt = 185,
             GreyTBCSmelt = 185,
+            Info = "Badlands (caves that have mostly Iron spawns)",
         },
         {
             Name = "Mithril",
@@ -175,6 +181,7 @@ MiningData = {
             GreenTBCSmelt = 202,
             GreyClassicSmelt = 175,
             GreyTBCSmelt = 230,
+            Info = "Arathi, Blasted Lands, Tanaris, Badlands",
         },
         {
             Name = "Truesilver",
@@ -194,6 +201,7 @@ MiningData = {
             GreenTBCSmelt = 242,
             GreyClassicSmelt = 230,
             GreyTBCSmelt = 250,
+            Info = "caves that have mostly Mithril spawns",
         },
         {
             Name = "Dark Iron",
@@ -213,6 +221,7 @@ MiningData = {
             GreenTBCSmelt = 305,
             GreyClassicSmelt = 230,
             GreyTBCSmelt = 310,
+            Info = "Burning Steppes, Searing Gorge, BRD, BRS, Molten Core",
         },
         {
             Name = "Small Thorium",
@@ -232,6 +241,7 @@ MiningData = {
             GreenTBCSmelt = 270,
             GreyClassicSmelt = 250,
             GreyTBCSmelt = 290,
+            Info = "Un'Goro, Silithus, Winterspring",
         },
         {
             Name = "Rich Thorium",
@@ -251,6 +261,7 @@ MiningData = {
             GreenTBCSmelt = 270,
             GreyClassicSmelt = 250,
             GreyTBCSmelt = 290,
+            Info = "Un'Goro, Silithus, Winterspring",
         },
         {
             Name = "Obsidian",
@@ -270,6 +281,7 @@ MiningData = {
             GreenTBCSmelt = nil,
             GreyClassicSmelt = nil,
             GreyTBCSmelt = nil,
+            Info = "only spawns on Ahn'Qiraj",
         },
     },
 }
