@@ -7,12 +7,17 @@ TabProfessions = {}
 function TabProfessions:Build(parent)
     local tabs = CategoryTabs:New({
         tabs = {
-            { value = "mining", text = "Mining" },
+            { value = "mining",    text = "Mining" },
+            { value = "herbalism", text = "Herbalism" },
         },
     })
 
     tabs:AddPage("mining", function(p)
         return Mining:Build(p)
+    end)
+
+    tabs:AddPage("herbalism", function(p)
+        return Herbalism:Build(p)
     end)
 
     -- Return the underlying AceGUI TabGroup widget
