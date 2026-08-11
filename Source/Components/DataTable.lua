@@ -8,7 +8,7 @@ Takes a declarative structure:
         width   = 700,          -- optional, default is the sum of column widths
         columns = {
             { id = "Name", width = 200 },
-            { id = "OrangeClassicMine", width = 60 },
+            { id = "OrangeClassicMine", width = 60, group = "Mine" },
             ...
         },
         rows = {
@@ -18,7 +18,12 @@ Takes a declarative structure:
     })
 
 Rows are keyed by column id. Values that are nil render as empty cells.
-Headers use column.title if provided, else the column id.
+There are up to two header rows: consecutive columns sharing the same `exp`
+value are merged into a cell in a super-header row above the regular header,
+and consecutive columns sharing the same `group` value are merged into a cell
+in the regular header row. Columns with neither `exp` nor `group` (e.g. an
+id/name column) span both header rows; other columns show column.title if
+provided, else column.name.
 
 Returns the AceGUI SimpleGroup, ready to be added to a page builder.
 -------------------------------------------------------------------------------]]
@@ -61,6 +66,27 @@ local function AddBorder(frame)
     edges[4]:SetWidth(t)
 end
 
+-- Returns a list of { first, last, value } index ranges where consecutive
+-- columns share the same non-nil value for columns[i][field].
+local function GroupedSpans(columns, field)
+    local spans = {}
+    local i = 1
+    while i <= #columns do
+        local value = columns[i][field]
+        if value then
+            local last = i
+            while columns[last + 1] and columns[last + 1][field] == value do
+                last = last + 1
+            end
+            spans[#spans + 1] = { first = i, last = last, value = value }
+            i = last + 1
+        else
+            i = i + 1
+        end
+    end
+    return spans
+end
+
 -- Build one row's cells directly under `container`, anchored at a fixed
 -- vertical offset. No pooling/virtualization: every row gets its own frame,
 -- and the table is sized to fit all of them (the page around it scrolls).
@@ -99,8 +125,19 @@ function DataTable:Build(parent, options)
     end
     local totalWidth = x
 
+    -- Columns with an `exp` field get a super-header row above the regular
+    -- header, merging consecutive columns that share the same value.
+    local hasExp = false
+    for _, col in ipairs(columns) do
+        if col.exp then
+            hasExp = true
+            break
+        end
+    end
+    local superHeaderHeight = hasExp and HEADER_HEIGHT or 0
+
     local width = options.width or totalWidth
-    local height = HEADER_HEIGHT + (#rows * ROW_HEIGHT)
+    local height = superHeaderHeight + HEADER_HEIGHT + (#rows * ROW_HEIGHT)
 
     -- Container frame hosting header + rows.
     local group = AceGUI:Create("SimpleGroup")
@@ -109,31 +146,81 @@ function DataTable:Build(parent, options)
     container:SetWidth(width)
     container:SetHeight(height)
 
-    -- Header row.
+    -- Super header row, merging consecutive columns that share an `exp` value.
+    if hasExp then
+        local superHeader = CreateFrame("Frame", nil, container)
+        superHeader:SetPoint("TOPLEFT", container, "TOPLEFT", 0, 0)
+        superHeader:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, 0)
+        superHeader:SetHeight(superHeaderHeight)
+        local superHeaderBg = superHeader:CreateTexture(nil, "BACKGROUND")
+        superHeaderBg:SetAllPoints(superHeader)
+        superHeaderBg:SetColorTexture(0.1, 0.1, 0.1, 0.6)
+
+        for _, span in ipairs(GroupedSpans(columns, "exp")) do
+            local first, last = columns[span.first], columns[span.last]
+            local cell = CreateFrame("Frame", nil, superHeader)
+            cell:SetPoint("TOPLEFT", superHeader, "TOPLEFT", first._x, 0)
+            cell:SetSize((last._x + last.width) - first._x, superHeaderHeight)
+            AddBorder(cell)
+            local fs = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+            fs:SetJustifyH("CENTER")
+            fs:SetText(span.value)
+            fs:SetPoint("LEFT", PADDING, 0)
+            fs:SetPoint("RIGHT", -PADDING, 0)
+        end
+    end
+
+    -- Header row. Consecutive columns sharing a `group` value are merged into
+    -- one cell; columns with neither `group` nor `exp` span both header rows.
     local header = CreateFrame("Frame", nil, container)
-    header:SetPoint("TOPLEFT", container, "TOPLEFT", 0, 0)
-    header:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, 0)
+    header:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -superHeaderHeight)
+    header:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, -superHeaderHeight)
     header:SetHeight(HEADER_HEIGHT)
     local headerBg = header:CreateTexture(nil, "BACKGROUND")
     headerBg:SetAllPoints(header)
     headerBg:SetColorTexture(0.1, 0.1, 0.1, 0.6)
-    for _, col in ipairs(columns) do
-        -- Header cell with thin border, matching the data cells.
+
+    local i = 1
+    while i <= #columns do
+        local col = columns[i]
+        local cellWidth = col.width
+        local cellHeight = HEADER_HEIGHT
+        local yOffset = 0
+        local label = col.title or col.name
+        local justify = "LEFT"
+
+        if col.group then
+            local last = i
+            while columns[last + 1] and columns[last + 1].group == col.group do
+                last = last + 1
+            end
+            cellWidth = (columns[last]._x + columns[last].width) - col._x
+            label = col.group
+            justify = "CENTER"
+            i = last
+        elseif not col.exp then
+            -- No header value at either tier: stretch to cover both rows.
+            cellHeight = superHeaderHeight + HEADER_HEIGHT
+            yOffset = superHeaderHeight
+        end
+
         local cell = CreateFrame("Frame", nil, header)
-        cell:SetPoint("TOPLEFT", header, "TOPLEFT", col._x, 0)
-        cell:SetSize(col.width, HEADER_HEIGHT)
+        cell:SetPoint("TOPLEFT", header, "TOPLEFT", col._x, yOffset)
+        cell:SetSize(cellWidth, cellHeight)
         AddBorder(cell)
         local fs = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        fs:SetJustifyH("LEFT")
-        fs:SetText(col.title or col.name)
+        fs:SetJustifyH(justify)
+        fs:SetText(label or "")
         fs:SetPoint("LEFT", PADDING, 0)
         fs:SetPoint("RIGHT", -PADDING, 0)
+
+        i = i + 1
     end
 
     -- Rows, stacked directly below the header. No inner scrollbar: the page
     -- around this table already scrolls, so the table is just as tall as its data.
     for idx, row in ipairs(rows) do
-        BuildRow(container, row, columns, -(HEADER_HEIGHT + (idx - 1) * ROW_HEIGHT))
+        BuildRow(container, row, columns, -(superHeaderHeight + HEADER_HEIGHT + (idx - 1) * ROW_HEIGHT))
     end
 
     return group
