@@ -9,6 +9,7 @@ function Mining:Build(parent)
     scroll:SetLayout("List")
 
     local charSkillLbl = AceGUI:Create("Label")
+    charSkillLbl:SetFullWidth(true)
     local miningSkill = Functions_Professions:GetProfessionSkillNumber("Mining")
     local maxMiningSkill = Functions_Professions:GetProfessionMaxSkillNumber("Mining")
 
