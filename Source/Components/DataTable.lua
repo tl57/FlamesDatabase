@@ -72,31 +72,39 @@ local function SkillDiffColor(diff)
     end
 end
 
--- Draw a thin border around a frame using 4 edge textures.
-local function AddBorder(frame)
-    local edges = {}
-    for i = 1, 4 do
+-- Draw a thin border around a frame using edge textures. Pass skipTop/skipLeft
+-- to omit those edges (e.g. for the table's first cell).
+local function AddBorder(frame, skipTop, skipLeft)
+    local t = BORDER_THICKNESS
+
+    local function edge()
         local tex = frame:CreateTexture(nil, "BORDER")
         tex:SetColorTexture(BORDER_COLOR[1], BORDER_COLOR[2], BORDER_COLOR[3], BORDER_COLOR[4])
-        edges[i] = tex
+        return tex
     end
-    local t = BORDER_THICKNESS
-    -- top
-    edges[1]:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
-    edges[1]:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
-    edges[1]:SetHeight(t)
+
+    if not skipTop then
+        local top = edge()
+        top:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+        top:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
+        top:SetHeight(t)
+    end
     -- bottom
-    edges[2]:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
-    edges[2]:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
-    edges[2]:SetHeight(t)
-    -- left
-    edges[3]:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
-    edges[3]:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
-    edges[3]:SetWidth(t)
+    local bottom = edge()
+    bottom:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
+    bottom:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+    bottom:SetHeight(t)
+    if not skipLeft then
+        local left = edge()
+        left:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+        left:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
+        left:SetWidth(t)
+    end
     -- right
-    edges[4]:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
-    edges[4]:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
-    edges[4]:SetWidth(t)
+    local right = edge()
+    right:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
+    right:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+    right:SetWidth(t)
 end
 
 -- Returns a list of { first, last, value } index ranges where consecutive
@@ -254,7 +262,9 @@ function DataTable:Build(parent, options)
         local cell = CreateFrame("Frame", nil, header)
         cell:SetPoint("TOPLEFT", header, "TOPLEFT", col._x, yOffset)
         cell:SetSize(cellWidth, cellHeight)
-        AddBorder(cell)
+        -- The table's very first cell (top-left corner) omits its top/left
+        -- edges so it doesn't double up against the surrounding page chrome.
+        AddBorder(cell, i == 1, i == 1)
         local fs = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         fs:SetJustifyH(justify)
         fs:SetText(label or "")
