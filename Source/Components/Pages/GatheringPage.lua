@@ -42,9 +42,18 @@ local function BuildExpansionRadioGroup(onSelect)
         end
     end
 
+    -- Sized to its own known content (button count * button width) rather
+    -- than SetFullWidth(true): at this point `scroll` (this group's eventual
+    -- parent) hasn't been given its real width yet - that only happens later,
+    -- when the outer tab group's Fill layout runs after Mining/Herbalism's
+    -- Build call already returns - so the "Flow" layout below would size
+    -- itself off whatever stale width this recycled ScrollFrame widget
+    -- happened to have from its last, unrelated use, wrapping the buttons
+    -- onto multiple rows whenever that stale width was too narrow.
+    local BUTTON_WIDTH = 90
     local group = AceGUI:Create("SimpleGroup")
     group:SetLayout("Flow")
-    group:SetFullWidth(true)
+    group:SetWidth(BUTTON_WIDTH * #levels)
     group:SetAutoAdjustHeight(false)
     group:SetHeight(24)
 
@@ -53,7 +62,7 @@ local function BuildExpansionRadioGroup(onSelect)
         local button = AceGUI:Create("CheckBox")
         button:SetType("radio")
         button:SetLabel(Functions_General:GetExpansionName(level))
-        button:SetWidth(90)
+        button:SetWidth(BUTTON_WIDTH)
         button:SetValue(i == selected)
         button:SetCallback("OnValueChanged", function(widget, _, checked)
             if checked then
