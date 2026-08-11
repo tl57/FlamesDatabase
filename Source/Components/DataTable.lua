@@ -39,6 +39,17 @@ local PADDING          = 8
 local BORDER_THICKNESS = 1
 local BORDER_COLOR     = { 1, 1, 1, 0.5 }
 
+-- Muted (low-saturation) cell tints keyed by a column's `background` name,
+-- e.g. { id = "OrangeClassicMine", background = "orange" }. CELL_BACKGROUND_ALPHA
+-- controls how strong the tint reads for all colors at once.
+local CELL_BACKGROUND_ALPHA  = 0.50
+local CELL_BACKGROUND_COLORS = {
+    orange = { 0.75, 0.55, 0.35 },
+    yellow = { 0.75, 0.70, 0.40 },
+    green  = { 0.45, 0.60, 0.45 },
+    grey   = { 0.55, 0.55, 0.55 },
+}
+
 -- Draw a thin border around a frame using 4 edge textures.
 local function AddBorder(frame)
     local edges = {}
@@ -98,9 +109,17 @@ local function BuildRow(container, row, columns, yOffset)
 
     for _, col in ipairs(columns) do
         local cell = CreateFrame("Frame", nil, frame)
-        AddBorder(cell)
         cell:SetPoint("TOPLEFT", frame, "TOPLEFT", col._x, 0)
         cell:SetSize(col.width, ROW_HEIGHT)
+
+        local tint = col.background and CELL_BACKGROUND_COLORS[col.background]
+        if tint then
+            local bg = cell:CreateTexture(nil, "BACKGROUND")
+            bg:SetAllPoints(cell)
+            bg:SetColorTexture(tint[1], tint[2], tint[3], CELL_BACKGROUND_ALPHA)
+        end
+
+        AddBorder(cell)
 
         local text = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         text:SetJustifyH("LEFT")
