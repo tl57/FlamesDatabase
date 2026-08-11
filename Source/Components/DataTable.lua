@@ -42,6 +42,8 @@ DataTable              = {}
 local ROW_HEIGHT       = 20
 local HEADER_HEIGHT    = 24
 local PADDING          = 8
+local ICON_SIZE        = 16
+local ICON_TEXT_GAP    = 4
 
 -- Thin white border settings.
 local BORDER_THICKNESS = 1
@@ -123,8 +125,9 @@ local function AcquireCell(container, parent)
         for _, tex in ipairs({ cell.edgeTop, cell.edgeBottom, cell.edgeLeft, cell.edgeRight }) do
             tex:SetColorTexture(BORDER_COLOR[1], BORDER_COLOR[2], BORDER_COLOR[3], BORDER_COLOR[4])
         end
+        cell.icon = cell:CreateTexture(nil, "ARTWORK")
+        cell.icon:SetSize(ICON_SIZE, ICON_SIZE)
         cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        cell.text:SetPoint("LEFT", PADDING, 0)
         cell.text:SetPoint("RIGHT", -PADDING, 0)
         container.cellPool[n] = cell
     end
@@ -133,7 +136,20 @@ local function AcquireCell(container, parent)
     cell:ClearAllPoints()
     cell:Show()
     cell.bg:Hide()
+    cell.icon:ClearAllPoints()
+    cell.icon:Hide()
     cell.text:SetTextColor(TEXT_COLOR_DEFAULT[1], TEXT_COLOR_DEFAULT[2], TEXT_COLOR_DEFAULT[3])
+    cell.text:SetPoint("LEFT", PADDING, 0)
+    -- Reset any item-link hover/click behavior a previous use of this pooled
+    -- cell may have wired up (see BuildRow) - cleared here, opted back into
+    -- per-cell by whichever caller actually needs it this build. pendingItemId
+    -- invalidates any in-flight ContinueOnItemLoad callback still targeting
+    -- this cell from a previous use.
+    cell:EnableMouse(false)
+    cell:SetScript("OnEnter", nil)
+    cell:SetScript("OnLeave", nil)
+    cell:SetScript("OnMouseUp", nil)
+    cell.pendingItemId = nil
     return cell
 end
 
@@ -208,18 +224,66 @@ local function BuildRow(container, row, columns, yOffset, skill)
         LayoutCell(cell, col.width, ROW_HEIGHT)
 
         local value = row[col.id]
-
         cell.text:SetJustifyH("LEFT")
-        cell.text:SetText(value or "")
 
-        if i == 1 then
-            if nameColor then
-                cell.text:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
+        if col.id == "ItemLinkId" and value then
+            -- This column's value holds an itemID (a plain number), resolved
+            -- into a full item link via Item:CreateFromItemID -
+            -- GetItemInfo/GetItemLink can return nothing on the very first
+            -- query for an item the client hasn't cached yet, so
+            -- ContinueOnItemLoad's callback is used to fire immediately if
+            -- already cached, or once the data arrives otherwise. Cells are
+            -- pooled/reused across rebuilds (switching tabs/expansions), so
+            -- pendingItemId guards against a delayed callback overwriting a
+            -- cell that's since been recycled for something unrelated.
+            local itemId = value
+            cell.text:SetText(("Item #%d"):format(itemId))
+            cell.pendingItemId = itemId
+
+            local item = Item:CreateFromItemID(itemId)
+            if not item:IsItemEmpty() then
+                item:ContinueOnItemLoad(function()
+                    if cell.pendingItemId ~= itemId then
+                        return
+                    end
+                    local itemLink = item:GetItemLink()
+
+                    cell.icon:SetTexture(item:GetItemIcon())
+                    cell.icon:SetPoint("LEFT", PADDING, 0)
+                    cell.icon:Show()
+                    cell.text:ClearAllPoints()
+                    cell.text:SetPoint("LEFT", cell.icon, "RIGHT", ICON_TEXT_GAP, 0)
+                    cell.text:SetPoint("RIGHT", -PADDING, 0)
+                    cell.text:SetText(itemLink)
+
+                    cell:EnableMouse(true)
+                    cell:SetScript("OnEnter", function(self)
+                        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                        GameTooltip:SetHyperlink(itemLink)
+                        GameTooltip:Show()
+                    end)
+                    cell:SetScript("OnLeave", function()
+                        GameTooltip:Hide()
+                    end)
+                    cell:SetScript("OnMouseUp", function()
+                        if IsModifiedClick("CHATLINK") then
+                            ChatEdit_InsertLink(itemLink)
+                        end
+                    end)
+                end)
             end
         else
-            local color = value ~= nil and col.background and CELL_BACKGROUND_COLORS[col.background]
-            if color then
-                cell.text:SetTextColor(color[1], color[2], color[3])
+            cell.text:SetText(value or "")
+
+            if i == 1 then
+                if nameColor then
+                    cell.text:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
+                end
+            else
+                local color = value ~= nil and col.background and CELL_BACKGROUND_COLORS[col.background]
+                if color then
+                    cell.text:SetTextColor(color[1], color[2], color[3])
+                end
             end
         end
     end

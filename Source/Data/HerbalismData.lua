@@ -7,19 +7,21 @@ HerbalismData = {
     profession = "Herbalism",
     columns = {
         { id = "Name",              width = 130 },
-        { id = "OrangeClassicHerb", width = 37, exp = LE_EXPANSION_CLASSIC,         background = "orange", group = "Herb" },
-        { id = "YellowClassicHerb", width = 37, exp = LE_EXPANSION_CLASSIC,         background = "yellow", group = "Herb" },
-        { id = "GreenClassicHerb",  width = 37, exp = LE_EXPANSION_CLASSIC,         background = "green",  group = "Herb" },
-        { id = "GreyClassicHerb",   width = 37, exp = LE_EXPANSION_CLASSIC,         background = "grey",   group = "Herb" },
-        { id = "OrangeTBCHerb",     width = 37, exp = LE_EXPANSION_BURNING_CRUSADE, background = "orange", group = "Herb" },
-        { id = "YellowTBCHerb",     width = 37, exp = LE_EXPANSION_BURNING_CRUSADE, background = "yellow", group = "Herb" },
-        { id = "GreenTBCHerb",      width = 37, exp = LE_EXPANSION_BURNING_CRUSADE, background = "green",  group = "Herb" },
-        { id = "GreyTBCHerb",       width = 37, exp = LE_EXPANSION_BURNING_CRUSADE, background = "grey",   group = "Herb" },
+        { id = "OrangeClassicHerb", width = 37,  group = "Herb", exp = LE_EXPANSION_CLASSIC,         background = "orange" },
+        { id = "YellowClassicHerb", width = 37,  group = "Herb", exp = LE_EXPANSION_CLASSIC,         background = "yellow" },
+        { id = "GreenClassicHerb",  width = 37,  group = "Herb", exp = LE_EXPANSION_CLASSIC,         background = "green" },
+        { id = "GreyClassicHerb",   width = 37,  group = "Herb", exp = LE_EXPANSION_CLASSIC,         background = "grey" },
+        { id = "OrangeTBCHerb",     width = 37,  group = "Herb", exp = LE_EXPANSION_BURNING_CRUSADE, background = "orange" },
+        { id = "YellowTBCHerb",     width = 37,  group = "Herb", exp = LE_EXPANSION_BURNING_CRUSADE, background = "yellow" },
+        { id = "GreenTBCHerb",      width = 37,  group = "Herb", exp = LE_EXPANSION_BURNING_CRUSADE, background = "green" },
+        { id = "GreyTBCHerb",       width = 37,  group = "Herb", exp = LE_EXPANSION_BURNING_CRUSADE, background = "grey" },
         { id = "Info",              width = 380, group = "Info" },
+        { id = "ItemLinkId",        width = 160, group = "Link" },
     },
     rows = {
         {
             Name = "Peacebloom",
+            ItemLinkId = 2447,
             OrangeClassicHerb = 1,
             YellowClassicHerb = 25,
             GreenClassicHerb = 50,
@@ -28,6 +30,7 @@ HerbalismData = {
         },
         {
             Name = "Silverleaf",
+            ItemLinkId = 765,
             OrangeClassicHerb = 1,
             YellowClassicHerb = 25,
             GreenClassicHerb = 50,
@@ -36,6 +39,7 @@ HerbalismData = {
         },
         {
             Name = "Earthroot",
+            ItemLinkId = 2449,
             OrangeClassicHerb = 15,
             YellowClassicHerb = 40,
             GreenClassicHerb = 65,
@@ -44,6 +48,7 @@ HerbalismData = {
         },
         {
             Name = "Mageroyal",
+            ItemLinkId = 785,
             OrangeClassicHerb = 50,
             YellowClassicHerb = 75,
             GreenClassicHerb = 100,
@@ -52,6 +57,7 @@ HerbalismData = {
         },
         {
             Name = "Briarthorn",
+            ItemLinkId = 2450,
             OrangeClassicHerb = 70,
             YellowClassicHerb = 95,
             GreenClassicHerb = nil,
@@ -60,6 +66,7 @@ HerbalismData = {
         },
         {
             Name = "Swiftthistle",
+            ItemLinkId = 2452,
             OrangeClassicHerb = nil,
             YellowClassicHerb = nil,
             GreenClassicHerb = nil,
@@ -68,6 +75,7 @@ HerbalismData = {
         },
         {
             Name = "Stranglekelp",
+            ItemLinkId = 3820,
             OrangeClassicHerb = 85,
             YellowClassicHerb = 110,
             GreenClassicHerb = 135,
@@ -76,6 +84,7 @@ HerbalismData = {
         },
         {
             Name = "Bruiseweed",
+            ItemLinkId = 2453,
             OrangeClassicHerb = 100,
             YellowClassicHerb = 125,
             GreenClassicHerb = 150,
@@ -84,6 +93,7 @@ HerbalismData = {
         },
         {
             Name = "Wild Steelbloom",
+            ItemLinkId = 3355,
             OrangeClassicHerb = 115,
             YellowClassicHerb = 140,
             GreenClassicHerb = 165,
@@ -92,6 +102,7 @@ HerbalismData = {
         },
         {
             Name = "Grave Moss",
+            ItemLinkId = 3369,
             OrangeClassicHerb = 120,
             YellowClassicHerb = 150,
             GreenClassicHerb = 170,
@@ -100,6 +111,7 @@ HerbalismData = {
         },
         {
             Name = "Kingsblood",
+            ItemLinkId = 3356,
             OrangeClassicHerb = 125,
             YellowClassicHerb = 155,
             GreenClassicHerb = 175,
@@ -108,6 +120,7 @@ HerbalismData = {
         },
         {
             Name = "Liferoot",
+            ItemLinkId = 3357,
             OrangeClassicHerb = 150,
             YellowClassicHerb = 175,
             GreenClassicHerb = 200,
@@ -116,6 +129,7 @@ HerbalismData = {
         },
         {
             Name = "Fadeleaf",
+            ItemLinkId = 3818,
             OrangeClassicHerb = 160,
             YellowClassicHerb = 185,
             GreenClassicHerb = 210,
@@ -124,6 +138,7 @@ HerbalismData = {
         },
         {
             Name = "Goldthorn",
+            ItemLinkId = 3821,
             OrangeClassicHerb = 170,
             YellowClassicHerb = 195,
             GreenClassicHerb = 220,
@@ -132,6 +147,7 @@ HerbalismData = {
         },
         {
             Name = "Khadgar's Whisker",
+            ItemLinkId = 3358,
             OrangeClassicHerb = 185,
             YellowClassicHerb = 210,
             GreenClassicHerb = 235,
@@ -140,6 +156,7 @@ HerbalismData = {
         },
         {
             Name = "Wintersbite",
+            ItemLinkId = 3819,
             OrangeClassicHerb = 195,
             YellowClassicHerb = 225,
             GreenClassicHerb = 245,
@@ -148,6 +165,7 @@ HerbalismData = {
         },
         {
             Name = "Firebloom",
+            ItemLinkId = 4625,
             OrangeClassicHerb = 205,
             YellowClassicHerb = 225,
             GreenClassicHerb = 255,
@@ -156,6 +174,7 @@ HerbalismData = {
         },
         {
             Name = "Purple Lotus",
+            ItemLinkId = 8831,
             OrangeClassicHerb = 210,
             YellowClassicHerb = 235,
             GreenClassicHerb = 260,
@@ -164,6 +183,7 @@ HerbalismData = {
         },
         {
             Name = "Wildvine",
+            ItemLinkId = 8153,
             OrangeClassicHerb = nil,
             YellowClassicHerb = nil,
             GreenClassicHerb = nil,
@@ -172,6 +192,7 @@ HerbalismData = {
         },
         {
             Name = "Arthas' Tears",
+            ItemLinkId = 8836,
             OrangeClassicHerb = 220,
             YellowClassicHerb = 250,
             GreenClassicHerb = 270,
@@ -180,6 +201,7 @@ HerbalismData = {
         },
         {
             Name = "Sungrass",
+            ItemLinkId = 8838,
             OrangeClassicHerb = 230,
             YellowClassicHerb = 255,
             GreenClassicHerb = 280,
@@ -188,6 +210,7 @@ HerbalismData = {
         },
         {
             Name = "Blindweed",
+            ItemLinkId = 8839,
             OrangeClassicHerb = 235,
             YellowClassicHerb = 260,
             GreenClassicHerb = 285,
@@ -196,6 +219,7 @@ HerbalismData = {
         },
         {
             Name = "Ghost Mushroom",
+            ItemLinkId = 8845,
             OrangeClassicHerb = 245,
             YellowClassicHerb = 270,
             GreenClassicHerb = 295,
@@ -204,6 +228,7 @@ HerbalismData = {
         },
         {
             Name = "Gromsblood",
+            ItemLinkId = 8846,
             OrangeClassicHerb = 250,
             YellowClassicHerb = 275,
             GreenClassicHerb = 300,
@@ -212,6 +237,7 @@ HerbalismData = {
         },
         {
             Name = "Golden Sansam",
+            ItemLinkId = 13464,
             OrangeClassicHerb = 260,
             YellowClassicHerb = 280,
             GreenClassicHerb = 310,
@@ -220,6 +246,7 @@ HerbalismData = {
         },
         {
             Name = "Dreamfoil",
+            ItemLinkId = 13463,
             OrangeClassicHerb = 270,
             YellowClassicHerb = 295,
             GreenClassicHerb = 320,
@@ -228,6 +255,7 @@ HerbalismData = {
         },
         {
             Name = "Mountain Silversage",
+            ItemLinkId = 13465,
             OrangeClassicHerb = 280,
             YellowClassicHerb = 305,
             GreenClassicHerb = 330,
@@ -236,6 +264,7 @@ HerbalismData = {
         },
         {
             Name = "Plaguebloom",
+            ItemLinkId = 13466,
             OrangeClassicHerb = 285,
             YellowClassicHerb = 310,
             GreenClassicHerb = 335,
@@ -244,6 +273,7 @@ HerbalismData = {
         },
         {
             Name = "Icecap",
+            ItemLinkId = 13467,
             OrangeClassicHerb = 290,
             YellowClassicHerb = 315,
             GreenClassicHerb = 340,
@@ -252,6 +282,7 @@ HerbalismData = {
         },
         {
             Name = "Black Lotus",
+            ItemLinkId = 13468,
             OrangeClassicHerb = 300,
             YellowClassicHerb = 340,
             GreenClassicHerb = 375,
@@ -260,6 +291,7 @@ HerbalismData = {
         },
         {
             Name = "Bloodvine",
+            ItemLinkId = 19726,
             OrangeClassicHerb = 300,
             YellowClassicHerb = 340,
             GreenClassicHerb = 375,
