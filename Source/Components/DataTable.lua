@@ -190,8 +190,8 @@ function DataTable:Build(parent, options)
     local group = AceGUI:Create("SimpleGroup")
     group:SetLayout("Fill")
     local container = group.frame
-    container:SetWidth(width)
-    container:SetHeight(height)
+    group:SetWidth(width)
+    group:SetHeight(height)
 
     -- Super header row, merging consecutive columns that share an `exp` value.
     if hasExp then
