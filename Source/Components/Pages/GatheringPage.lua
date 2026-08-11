@@ -80,7 +80,7 @@ local function BuildExpansionRadioGroup(onSelect)
     -- guessing came up a few pixels short and wrapped the second button
     -- onto its own row.
     local label = AceGUI:Create("Label")
-    label:SetFontObject(GameFontHighlight)
+    label:SetFontObject(GameFontHighlightLarge)
     label:SetText("Current Expansion Data:")
     local labelWidth = math.ceil(label.label:GetStringWidth()) + 8
     label:SetWidth(labelWidth)
