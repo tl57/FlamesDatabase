@@ -24,9 +24,9 @@ function toggleMainFrame()
 		-- so there's no way to reach content narrower than the window;
 		-- keeping width >= 800 avoids the table ever getting clipped.
 		if main_container.frame.SetResizeBounds then
-			main_container.frame:SetResizeBounds(800, 240)
+			main_container.frame:SetResizeBounds(900, 240)
 		else
-			main_container.frame:SetMinResize(800, 240)
+			main_container.frame:SetMinResize(900, 240)
 		end
 
 		--[[
