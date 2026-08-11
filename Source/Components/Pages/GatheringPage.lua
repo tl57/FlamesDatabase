@@ -18,12 +18,13 @@ GatheringPage = {}
 -- UpdateImageAnchor runs, which clobbers a manually set height. SimpleGroup
 -- only auto-resizes via LayoutFinished (summing its children's height),
 -- which SetAutoAdjustHeight disables outright, leaving our explicit height
--- alone.
-local function AddSpacer(scroll)
+-- alone. Returns the widget rather than adding it itself, since RebuildTable
+-- below needs to hang onto one instance as an insertion anchor.
+local function BuildSpacer()
     local spacer = AceGUI:Create("SimpleGroup")
     spacer:SetAutoAdjustHeight(false)
     spacer:SetHeight(12)
-    scroll:AddChild(spacer)
+    return spacer
 end
 
 -- A row of mutually-exclusive radio buttons, one per expansion this addon
@@ -153,11 +154,19 @@ function GatheringPage:AddHeader(scroll, parent, profession, data)
     skillLbl:SetText(skillText)
     scroll:AddChild(skillLbl)
 
-    AddSpacer(scroll)
+    scroll:AddChild(BuildSpacer())
 
     -- Replaced in place (see RebuildTable) whenever the radio group's
     -- selected expansion changes, rather than rebuilding the whole page.
     local tableWidget
+
+    -- The spacer directly below the table - assigned further down, once it
+    -- exists, but declared here so RebuildTable's closure can see it.
+    -- RebuildTable inserts the table before it via AddChild's beforeWidget
+    -- param instead of appending, so a rebuilt table lands back in its
+    -- original spot instead of after the trailing spacer/Recommendations
+    -- label added below.
+    local trailingSpacer
 
     local function RebuildTable(selectedExpansion)
         if tableWidget then
@@ -170,21 +179,22 @@ function GatheringPage:AddHeader(scroll, parent, profession, data)
             AceGUI:Release(tableWidget)
         end
         tableWidget = DataTable:Build(parent, data, selectedExpansion)
-        scroll:AddChild(tableWidget)
+        scroll:AddChild(tableWidget, trailingSpacer)
     end
 
     local radioGroup, initialExpansion = BuildExpansionRadioGroup(RebuildTable)
     scroll:AddChild(radioGroup)
 
-    AddSpacer(scroll)
+    scroll:AddChild(BuildSpacer())
 
-    RebuildTable(initialExpansion)
-
-    AddSpacer(scroll)
+    trailingSpacer = BuildSpacer()
+    scroll:AddChild(trailingSpacer)
 
     local recommendationsLbl = AceGUI:Create("Label")
     recommendationsLbl:SetFullWidth(true)
     recommendationsLbl:SetFontObject(GameFontHighlightLarge)
     recommendationsLbl:SetText("Recommendations:")
     scroll:AddChild(recommendationsLbl)
+
+    RebuildTable(initialExpansion)
 end
