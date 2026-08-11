@@ -15,7 +15,7 @@ function toggleMainFrame()
 		main_container = AceGUI:Create("Window")
 		main_container:SetTitle(addonName)
 		main_container:SetLayout("Fill")
-		main_container:SetWidth(800)
+		main_container:SetWidth(900)
 		main_container:SetHeight(450)
 
 		-- Floor the resizable width at the default (AceGUI's own Window

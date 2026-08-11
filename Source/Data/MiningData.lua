@@ -5,7 +5,7 @@
 MiningData = {
     profession = "Mining",
     columns = {
-        { id = "Name",               width = 100 },
+        { id = "Name",               width = 90 },
         { id = "OrangeClassicMine",  width = 37,  group = "Mine",  exp = LE_EXPANSION_CLASSIC,         background = "orange" },
         { id = "YellowClassicMine",  width = 37,  group = "Mine",  exp = LE_EXPANSION_CLASSIC,         background = "yellow" },
         { id = "GreenClassicMine",   width = 37,  group = "Mine",  exp = LE_EXPANSION_CLASSIC,         background = "green" },
@@ -22,8 +22,8 @@ MiningData = {
         { id = "YellowTBCSmelt",     width = 37,  group = "Smelt", exp = LE_EXPANSION_BURNING_CRUSADE, background = "yellow" },
         { id = "GreenTBCSmelt",      width = 37,  group = "Smelt", exp = LE_EXPANSION_BURNING_CRUSADE, background = "green" },
         { id = "GreyTBCSmelt",       width = 37,  group = "Smelt", exp = LE_EXPANSION_BURNING_CRUSADE, background = "grey" },
-        { id = "Info",               width = 310, group = "Info" },
-        { id = "ItemLinkId",         width = 160, group = "Link" },
+        { id = "Info",               width = 268, group = "Info" },
+        { id = "ItemLinkId",         width = 154, group = "Link" },
     },
     rows = {
         {
@@ -45,7 +45,7 @@ MiningData = {
             GreenTBCSmelt = 47,
             GreyClassicSmelt = 70,
             GreyTBCSmelt = 70,
-            Info = "All 1-10 zones except Teldrassil; Barrens, Darkshore",
+            Info = "All 1-10 zones exc. Teldrassil; Barrens, Darkshore",
         },
         {
             Name = "Tin",
