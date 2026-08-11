@@ -47,10 +47,9 @@ local BORDER_THICKNESS = 1
 local BORDER_COLOR     = { 1, 1, 1, 0.5 }
 local TEXT_COLOR_DEFAULT = { 1, 1, 1 }
 
--- Muted (low-saturation) cell tints keyed by a column's `background` name,
--- e.g. { id = "OrangeClassicMine", background = "orange" }. CELL_BACKGROUND_ALPHA
--- controls how strong the tint reads for all colors at once.
-local CELL_BACKGROUND_ALPHA  = 0.50
+-- Column-identity text colors keyed by a column's `background` name, e.g.
+-- { id = "OrangeClassicMine", background = "orange" } -> that column's
+-- numbers render in this color, regardless of skill.
 local CELL_BACKGROUND_COLORS = {
     orange = { 0.75, 0.55, 0.35 },
     yellow = { 0.75, 0.70, 0.40 },
@@ -225,21 +224,18 @@ local function BuildRow(container, row, columns, yOffset, skill)
 
         local value = row[col.id]
 
-        local tint = value ~= nil and col.background and CELL_BACKGROUND_COLORS[col.background]
-        if tint then
-            cell.bg:SetAllPoints(cell)
-            cell.bg:SetColorTexture(tint[1], tint[2], tint[3], CELL_BACKGROUND_ALPHA)
-            cell.bg:Show()
-        end
-
         cell.text:SetJustifyH("LEFT")
         cell.text:SetText(value or "")
 
-        if skill and type(value) == "number" then
-            local color = SkillDiffColor(skill - value)
-            cell.text:SetTextColor(color[1], color[2], color[3])
-        elseif i == 1 and nameColor then
-            cell.text:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
+        if i == 1 then
+            if nameColor then
+                cell.text:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
+            end
+        else
+            local color = value ~= nil and col.background and CELL_BACKGROUND_COLORS[col.background]
+            if color then
+                cell.text:SetTextColor(color[1], color[2], color[3])
+            end
         end
     end
 end
