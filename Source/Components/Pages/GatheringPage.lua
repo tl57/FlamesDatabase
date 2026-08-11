@@ -102,7 +102,7 @@ function GatheringPage:AddHeader(scroll, parent, profession, data)
 
         local shouldGoTrain = Functions_Professions:GetProfessionShouldGoLearn(skill, maxSkill, profession)
         if (shouldGoTrain) then
-            skillText = skillText .. " You should go train soon!"
+            skillText = skillText .. " You should go train!"
             skillLbl:SetColor(1, 0, 0)
         else
             skillLbl:SetColor()
