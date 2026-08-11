@@ -23,7 +23,16 @@ GatheringPage = {}
 -- Returns the group widget and the initially selected level.
 local function BuildExpansionRadioGroup(onSelect)
     local currentLevel = Functions_General:GetServerExpansionLevel()
-    local levels = Functions_General:GetExpansionLevels()
+
+    -- MiningData/HerbalismData only have columns for Classic and TBC so far,
+    -- so higher levels wouldn't have anything to show - drop them until data
+    -- for them exists.
+    local levels = {}
+    for _, level in ipairs(Functions_General:GetExpansionLevels()) do
+        if level <= LE_EXPANSION_BURNING_CRUSADE then
+            levels[#levels + 1] = level
+        end
+    end
 
     local selected = 1
     for i, level in ipairs(levels) do
