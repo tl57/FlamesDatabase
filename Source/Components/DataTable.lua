@@ -201,6 +201,15 @@ function DataTable:Build(parent, options)
     group:SetWidth(width)
     group:SetHeight(height)
 
+    -- AceGUI pools and reuses SimpleGroup widgets. The header/row cells below
+    -- are raw CreateFrame children of `container`, not AceGUI children of
+    -- `group`, so Release/ReleaseChildren never sees or hides them - a
+    -- recycled `group` would otherwise still have last build's cells attached
+    -- and visible underneath this one. Hide any leftovers before rebuilding.
+    for _, child in ipairs({ container:GetChildren() }) do
+        child:Hide()
+    end
+
     -- Super header row, merging consecutive columns that share an `exp` value.
     if hasExp then
         local superHeader = CreateFrame("Frame", nil, container)
