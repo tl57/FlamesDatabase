@@ -42,20 +42,46 @@ local function BuildExpansionRadioGroup(onSelect)
         end
     end
 
-    -- Sized to its own known content (button count * button width) rather
-    -- than SetFullWidth(true): at this point `scroll` (this group's eventual
-    -- parent) hasn't been given its real width yet - that only happens later,
-    -- when the outer tab group's Fill layout runs after Mining/Herbalism's
-    -- Build call already returns - so the "Flow" layout below would size
-    -- itself off whatever stale width this recycled ScrollFrame widget
-    -- happened to have from its last, unrelated use, wrapping the buttons
-    -- onto multiple rows whenever that stale width was too narrow.
+    -- Sized to its own known content (label width + button count * button
+    -- width) rather than SetFullWidth(true): at this point `scroll` (this
+    -- group's eventual parent) hasn't been given its real width yet - that
+    -- only happens later, when the outer tab group's Fill layout runs after
+    -- Mining/Herbalism's Build call already returns - so the "Flow" layout
+    -- below would size itself off whatever stale width this recycled
+    -- ScrollFrame widget happened to have from its last, unrelated use,
+    -- wrapping the buttons onto multiple rows whenever that stale width was
+    -- too narrow.
     local BUTTON_WIDTH = 90
     local group = AceGUI:Create("SimpleGroup")
     group:SetLayout("Flow")
-    group:SetWidth(BUTTON_WIDTH * #levels)
     group:SetAutoAdjustHeight(false)
     group:SetHeight(24)
+
+    -- AceGUI has no dedicated RadioGroup widget with a built-in label slot,
+    -- so this Label is just the first child in the Flow row, rendering to
+    -- the left of the buttons within the same group. Font matches the
+    -- CheckBox labels' GameFontHighlight (Label defaults to the smaller
+    -- GameFontHighlightSmall), and its width is the text's actual measured
+    -- width plus a little padding rather than a guessed fixed number -
+    -- guessing came up a few pixels short and wrapped the second button
+    -- onto its own row.
+    local label = AceGUI:Create("Label")
+    label:SetFontObject(GameFontHighlight)
+    label:SetText("Current Expansion Data:")
+    local labelWidth = math.ceil(label.label:GetStringWidth()) + 8
+    label:SetWidth(labelWidth)
+    -- Flow layout vertically aligns row children using each child's own
+    -- alignoffset (default: half its frame height). CheckBox always ends up
+    -- 24px tall (its OnAcquire calls SetDescription(nil), whose else-branch
+    -- is SetHeight(24)), but Label sizes itself off its FontString's actual
+    -- text height, which is shorter - mismatched alignoffsets, so the label
+    -- text sat higher than the button labels. Matching CheckBox's height
+    -- here (after the width/font/text calls above, so nothing recomputes it
+    -- afterward) makes both default to the same alignoffset.
+    label:SetHeight(24)
+
+    group:SetWidth(labelWidth + BUTTON_WIDTH * #levels)
+    group:AddChild(label)
 
     local buttons = {}
     for i, level in ipairs(levels) do
