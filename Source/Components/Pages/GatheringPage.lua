@@ -13,6 +13,19 @@ local AceGUI = LibStub("AceGUI-3.0")
 
 GatheringPage = {}
 
+-- Vertical gap between header sections. A SimpleGroup rather than a Label:
+-- Label recomputes its own height from its FontString's text any time
+-- UpdateImageAnchor runs, which clobbers a manually set height. SimpleGroup
+-- only auto-resizes via LayoutFinished (summing its children's height),
+-- which SetAutoAdjustHeight disables outright, leaving our explicit height
+-- alone.
+local function AddSpacer(scroll)
+    local spacer = AceGUI:Create("SimpleGroup")
+    spacer:SetAutoAdjustHeight(false)
+    spacer:SetHeight(12)
+    scroll:AddChild(spacer)
+end
+
 -- A row of mutually-exclusive radio buttons, one per expansion this addon
 -- knows about (Functions_General:GetExpansionLevels), with the one matching
 -- the realm's current expansion pre-selected. AceGUI has no dedicated
@@ -140,16 +153,7 @@ function GatheringPage:AddHeader(scroll, parent, profession, data)
     skillLbl:SetText(skillText)
     scroll:AddChild(skillLbl)
 
-    -- Spacer so the radio group doesn't sit flush against the label above it.
-    -- A SimpleGroup rather than a Label: Label recomputes its own height
-    -- from its FontString's text any time UpdateImageAnchor runs, which
-    -- clobbers a manually set height. SimpleGroup only auto-resizes via
-    -- LayoutFinished (summing its children's height), which SetAutoAdjustHeight
-    -- disables outright, leaving our explicit height alone.
-    local spacer = AceGUI:Create("SimpleGroup")
-    spacer:SetAutoAdjustHeight(false)
-    spacer:SetHeight(12)
-    scroll:AddChild(spacer)
+    AddSpacer(scroll)
 
     -- Replaced in place (see RebuildTable) whenever the radio group's
     -- selected expansion changes, rather than rebuilding the whole page.
@@ -172,10 +176,15 @@ function GatheringPage:AddHeader(scroll, parent, profession, data)
     local radioGroup, initialExpansion = BuildExpansionRadioGroup(RebuildTable)
     scroll:AddChild(radioGroup)
 
-    local spacer2 = AceGUI:Create("SimpleGroup")
-    spacer2:SetAutoAdjustHeight(false)
-    spacer2:SetHeight(12)
-    scroll:AddChild(spacer2)
+    AddSpacer(scroll)
 
     RebuildTable(initialExpansion)
+
+    AddSpacer(scroll)
+
+    local recommendationsLbl = AceGUI:Create("Label")
+    recommendationsLbl:SetFullWidth(true)
+    recommendationsLbl:SetFontObject(GameFontHighlightLarge)
+    recommendationsLbl:SetText("Recommendations:")
+    scroll:AddChild(recommendationsLbl)
 end
