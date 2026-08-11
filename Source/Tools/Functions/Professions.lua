@@ -64,7 +64,7 @@ function Functions_Professions:GetProfessionShouldGoLearn(currentskill, currentM
     local nextRankMinLevel = nextRankLevels[currentMaxSkill]
     local meetsLevelRequirement = not nextRankMinLevel or characterLevel >= nextRankMinLevel
 
-    local expansion = GetServerExpansionLevel and GetServerExpansionLevel()
+    local expansion = Functions_General:GetServerExpansionLevel()
     local expansionSkillCap
     if expansion == LE_EXPANSION_CLASSIC then
         expansionSkillCap = 300

@@ -281,6 +281,35 @@ function DataTable:Build(parent, options)
     group:SetWidth(width)
     group:SetHeight(height)
 
+    -- AceGUI's SimpleGroup pool is shared by every SimpleGroup in the client
+    -- session (every addon using this AceGUI-3.0, not just this one) - a
+    -- frame that previously served as a table full of pooled row/cell
+    -- children can later be handed back to us as a "fresh" container, or
+    -- (worse) recycled elsewhere entirely as an unrelated widget (e.g. a
+    -- spacer) whose code has no idea about rowPool/cellPool and won't hide
+    -- them. Defensively hide everything already attached before
+    -- reusing/reshowing whichever of our own pooled children this build
+    -- actually needs. Cheap: pooling already bounds how many children a
+    -- container can ever accumulate, unlike before pooling existed.
+    for _, child in ipairs({ container:GetChildren() }) do
+        child:Hide()
+    end
+
+    -- Hiding a parent doesn't change its children's own shown-state, only
+    -- their effective visibility while the parent stays hidden - so if this
+    -- container gets released (e.g. switching away from this page) and then
+    -- recycled for something unrelated (a spacer, another addon's widget)
+    -- before we ever rebuild into it again, that something else calling
+    -- :Show() on it would also resurface our still-"shown" leftover cells
+    -- riding along underneath. Closing that race requires cleaning up at
+    -- release time, not just at the next build - AceGUI calls this hook
+    -- when `group` is released, before the frame is handed back to the pool.
+    group.OnRelease = function(self)
+        for _, child in ipairs({ self.frame:GetChildren() }) do
+            child:Hide()
+        end
+    end
+
     -- Reset this build's usage counters; AcquireRow/AcquireCell reuse
     -- container.rowPool/cellPool from a previous build of this (possibly
     -- recycled) container instead of creating fresh frames.

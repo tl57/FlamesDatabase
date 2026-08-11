@@ -13,8 +13,62 @@ local AceGUI = LibStub("AceGUI-3.0")
 
 GatheringPage = {}
 
--- Adds the skill label + spacer + DataTable to `scroll`. `parent` is passed
--- through to DataTable:Build unchanged (see DataTable.lua).
+-- Expansion names indexed by LE_EXPANSION_* + 1.
+local EXPANSION_NAMES = { "Classic", "TBC", "WotLK", "Cataclysm" }
+
+-- A row of mutually-exclusive radio buttons, one per expansion this addon
+-- knows about (Functions_General:GetExpansionLevels), with the one matching
+-- the realm's current expansion pre-selected. AceGUI has no dedicated
+-- RadioGroup widget, so this is built from CheckBox widgets in "radio" mode
+-- with manual exclusivity handling.
+local function BuildExpansionRadioGroup()
+    local currentLevel = Functions_General:GetServerExpansionLevel()
+    local levels = Functions_General:GetExpansionLevels()
+
+    local selected = 1
+    for i, level in ipairs(levels) do
+        if level == currentLevel then
+            selected = i
+            break
+        end
+    end
+
+    local group = AceGUI:Create("SimpleGroup")
+    group:SetLayout("Flow")
+    group:SetFullWidth(true)
+    group:SetAutoAdjustHeight(false)
+    group:SetHeight(24)
+
+    local buttons = {}
+    for i, level in ipairs(levels) do
+        local button = AceGUI:Create("CheckBox")
+        button:SetType("radio")
+        button:SetLabel(EXPANSION_NAMES[i] or ("Expansion " .. level))
+        button:SetWidth(90)
+        button:SetValue(i == selected)
+        button:SetCallback("OnValueChanged", function(widget, _, checked)
+            if checked then
+                for j, other in ipairs(buttons) do
+                    if j ~= i then
+                        other:SetValue(false)
+                    end
+                end
+            else
+                -- Radio buttons shouldn't be deselectable by clicking the
+                -- already-selected one - keep exactly one checked at all times.
+                widget:SetValue(true)
+            end
+        end)
+        buttons[i] = button
+        group:AddChild(button)
+    end
+
+    return group
+end
+
+-- Adds the skill label + spacer + expansion radio group + spacer + DataTable
+-- to `scroll`. `parent` is passed through to DataTable:Build unchanged (see
+-- DataTable.lua).
 function GatheringPage:AddHeader(scroll, parent, profession, data)
     local skillLbl = AceGUI:Create("Label")
     skillLbl:SetFullWidth(true)
@@ -41,7 +95,7 @@ function GatheringPage:AddHeader(scroll, parent, profession, data)
     skillLbl:SetText(skillText)
     scroll:AddChild(skillLbl)
 
-    -- Spacer so the table doesn't sit flush against the label above it.
+    -- Spacer so the radio group doesn't sit flush against the label above it.
     -- A SimpleGroup rather than a Label: Label recomputes its own height
     -- from its FontString's text any time UpdateImageAnchor runs, which
     -- clobbers a manually set height. SimpleGroup only auto-resizes via
@@ -51,6 +105,13 @@ function GatheringPage:AddHeader(scroll, parent, profession, data)
     spacer:SetAutoAdjustHeight(false)
     spacer:SetHeight(12)
     scroll:AddChild(spacer)
+
+    scroll:AddChild(BuildExpansionRadioGroup())
+
+    local spacer2 = AceGUI:Create("SimpleGroup")
+    spacer2:SetAutoAdjustHeight(false)
+    spacer2:SetHeight(12)
+    scroll:AddChild(spacer2)
 
     local table = DataTable:Build(parent, data)
     scroll:AddChild(table)
