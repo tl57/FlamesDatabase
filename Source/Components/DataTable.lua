@@ -371,9 +371,24 @@ function DataTable:Build(parent, options, selectedExpansion)
     -- riding along underneath. Closing that race requires cleaning up at
     -- release time, not just at the next build - AceGUI calls this hook
     -- when `group` is released, before the frame is handed back to the pool.
+    --
+    -- Only our own pooled row/cell frames (container.rowPool/cellPool) are
+    -- hidden here - NOT container:GetChildren(), which would also catch
+    -- AceGUI's own `content` sub-frame (always a direct child of the
+    -- container). content is what every other AceGUI widget gets parented
+    -- into via AddChild, and nothing ever calls content:Show() again once
+    -- hidden - so if this exact SimpleGroup instance later gets recycled
+    -- (from AceGUI's pool, shared across every SimpleGroup in the client)
+    -- into a container that actually uses AddChild (e.g. GatheringPage's
+    -- expansion radio group), hiding content here would permanently hide
+    -- all of that unrelated future content, with no tab-switch able to fix
+    -- it since content's hidden state persists on the recycled frame.
     group.OnRelease = function(self)
-        for _, child in ipairs({ self.frame:GetChildren() }) do
-            child:Hide()
+        for _, frame in ipairs(self.frame.rowPool or {}) do
+            frame:Hide()
+        end
+        for _, frame in ipairs(self.frame.cellPool or {}) do
+            frame:Hide()
         end
     end
 
