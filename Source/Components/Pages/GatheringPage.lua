@@ -251,7 +251,7 @@ local function BuildRecommendationLinksRow(scroll, recommendations)
         end
 
         FillRecommendationRow(glovesheaderRow, {
-            "1.1) Grab white gloves from your Faction's starting area",
+            "1.1) Grab a pair of white gloves from your Faction's starting area",
         })
 
         FillRecommendationRow(glovesAllianceRow, {
