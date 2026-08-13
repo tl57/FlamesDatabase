@@ -127,7 +127,7 @@ local function BuildExpansionRadioGroup(onSelect)
 end
 
 -- A Label showing `text`, with tooltip+click wired up like DataTable.lua's
--- item cells (BuildRow, ItemLinkId column) when `itemLink` is given -
+-- item cells (WireItemCell) when `itemLink` is given -
 -- Classic Era's FontString has no SetHyperlinksEnabled (that's what the
 -- single-FontString-with-embedded-links approach relied on, and it doesn't
 -- exist here), so each item link needs its own mouse-enabled widget instead
@@ -218,7 +218,7 @@ end
 -- Horde) on the first row, enchant + 2 materials on the second - see
 -- `recommendations`' shape on GatheringPage:AddHeader. Items load
 -- asynchronously (Item:CreateFromItemID + ContinueOnItemLoad - same API
--- DataTable.lua's BuildRow uses for its ItemLinkId column), so the first
+-- DataTable.lua's WireItemCell uses), so the first
 -- row shows a placeholder until all 5 have resolved, then both rows are
 -- filled in one pass.
 local function BuildRecommendationLinksRow(scroll, recommendations)

@@ -21,6 +21,10 @@ Rows are keyed by column id. Values that are nil render as empty cells.
 Consecutive columns sharing the same `group` value are merged into one header
 cell; other columns show column.title if provided, else column.name.
 
+If a row has an `ItemLinkId` (an itemID, not part of `columns`), the Name
+column shows that item's icon and gets tooltip/shift-click-to-chat behavior,
+while still displaying the row's own Name text (see WireItemCell).
+
 When `selectedExpansion` is given (one of Functions_General:GetExpansionLevels()),
 only columns with no `exp` or with `exp == selectedExpansion` are included -
 `exp` otherwise has no visual effect of its own (no separate header row for
@@ -192,6 +196,60 @@ local function LayoutCell(cell, width, height, skipTop, skipLeft)
     cell.edgeRight:SetWidth(t)
 end
 
+-- Resolves `itemId` asynchronously and, once loaded, turns `cell` into an
+-- icon + item-link-aware cell: shows the item's icon to the left of the
+-- text, and wires GameTooltip:SetHyperlink on hover and ChatEdit_InsertLink
+-- on shift-click. `displayText`, if given, is shown as the cell's text once
+-- the item loads instead of the item's own link text (used by the Name
+-- column to keep showing the row's custom Name string, e.g. "Copper",
+-- rather than the item's real link label). Leave nil to show the raw item
+-- link text.
+--
+-- GetItemInfo/GetItemLink can return nothing on the very first query for an
+-- item the client hasn't cached yet, so ContinueOnItemLoad's callback fires
+-- immediately if already cached, or once the data arrives otherwise. Cells
+-- are pooled/reused across rebuilds (switching tabs/expansions), so
+-- cell.pendingItemId guards against a delayed callback overwriting a cell
+-- that's since been recycled for something unrelated.
+local function WireItemCell(cell, itemId, displayText)
+    cell.pendingItemId = itemId
+
+    local item = Item:CreateFromItemID(itemId)
+    if item:IsItemEmpty() then
+        return
+    end
+
+    item:ContinueOnItemLoad(function()
+        if cell.pendingItemId ~= itemId then
+            return
+        end
+        local itemLink = item:GetItemLink()
+
+        cell.icon:SetTexture(item:GetItemIcon())
+        cell.icon:SetPoint("LEFT", PADDING, 0)
+        cell.icon:Show()
+        cell.text:ClearAllPoints()
+        cell.text:SetPoint("LEFT", cell.icon, "RIGHT", ICON_TEXT_GAP, 0)
+        cell.text:SetPoint("RIGHT", -PADDING, 0)
+        cell.text:SetText(displayText or itemLink)
+
+        cell:EnableMouse(true)
+        cell:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetHyperlink(itemLink)
+            GameTooltip:Show()
+        end)
+        cell:SetScript("OnLeave", function()
+            GameTooltip:Hide()
+        end)
+        cell:SetScript("OnMouseUp", function()
+            if IsModifiedClick("CHATLINK") then
+                ChatEdit_InsertLink(itemLink)
+            end
+        end)
+    end)
+end
+
 -- Build one row's cells directly under `container`, anchored at a fixed
 -- vertical offset. The table is sized to fit all of them (the page around it
 -- scrolls).
@@ -226,64 +284,26 @@ local function BuildRow(container, row, columns, yOffset, skill)
         local value = row[col.id]
         cell.text:SetJustifyH("LEFT")
 
-        if col.id == "ItemLinkId" and value then
-            -- This column's value holds an itemID (a plain number), resolved
-            -- into a full item link via Item:CreateFromItemID -
-            -- GetItemInfo/GetItemLink can return nothing on the very first
-            -- query for an item the client hasn't cached yet, so
-            -- ContinueOnItemLoad's callback is used to fire immediately if
-            -- already cached, or once the data arrives otherwise. Cells are
-            -- pooled/reused across rebuilds (switching tabs/expansions), so
-            -- pendingItemId guards against a delayed callback overwriting a
-            -- cell that's since been recycled for something unrelated.
-            local itemId = value
-            cell.text:SetText(("Item #%d"):format(itemId))
-            cell.pendingItemId = itemId
-
-            local item = Item:CreateFromItemID(itemId)
-            if not item:IsItemEmpty() then
-                item:ContinueOnItemLoad(function()
-                    if cell.pendingItemId ~= itemId then
-                        return
-                    end
-                    local itemLink = item:GetItemLink()
-
-                    cell.icon:SetTexture(item:GetItemIcon())
-                    cell.icon:SetPoint("LEFT", PADDING, 0)
-                    cell.icon:Show()
-                    cell.text:ClearAllPoints()
-                    cell.text:SetPoint("LEFT", cell.icon, "RIGHT", ICON_TEXT_GAP, 0)
-                    cell.text:SetPoint("RIGHT", -PADDING, 0)
-                    cell.text:SetText(itemLink)
-
-                    cell:EnableMouse(true)
-                    cell:SetScript("OnEnter", function(self)
-                        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                        GameTooltip:SetHyperlink(itemLink)
-                        GameTooltip:Show()
-                    end)
-                    cell:SetScript("OnLeave", function()
-                        GameTooltip:Hide()
-                    end)
-                    cell:SetScript("OnMouseUp", function()
-                        if IsModifiedClick("CHATLINK") then
-                            ChatEdit_InsertLink(itemLink)
-                        end
-                    end)
-                end)
+        if i == 1 then
+            -- Name column: always display the row's own Name string (never
+            -- the item's own link text), and keep the skill-diff tint. When
+            -- this row also has an ItemLinkId, additionally show that item's
+            -- icon and wire up tooltip/shift-click-to-chat via WireItemCell,
+            -- pinning `value` as the text so it keeps reading e.g. "Copper"
+            -- instead of switching to the item's own link label once loaded.
+            cell.text:SetText(value or "")
+            if nameColor then
+                cell.text:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
+            end
+            if row.ItemLinkId then
+                WireItemCell(cell, row.ItemLinkId, value)
             end
         else
             cell.text:SetText(value or "")
 
-            if i == 1 then
-                if nameColor then
-                    cell.text:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
-                end
-            else
-                local color = value ~= nil and col.background and CELL_BACKGROUND_COLORS[col.background]
-                if color then
-                    cell.text:SetTextColor(color[1], color[2], color[3])
-                end
+            local color = value ~= nil and col.background and CELL_BACKGROUND_COLORS[col.background]
+            if color then
+                cell.text:SetTextColor(color[1], color[2], color[3])
             end
         end
     end

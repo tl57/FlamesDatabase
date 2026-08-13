@@ -15,7 +15,7 @@ function toggleMainFrame()
 		main_container = AceGUI:Create("Window")
 		main_container:SetTitle(addonName)
 		main_container:SetLayout("Fill")
-		main_container:SetWidth(900)
+		main_container:SetWidth(770)
 		main_container:SetHeight(450)
 
 		-- Floor the resizable width at the default (AceGUI's own Window
@@ -24,9 +24,9 @@ function toggleMainFrame()
 		-- so there's no way to reach content narrower than the window;
 		-- keeping width >= 800 avoids the table ever getting clipped.
 		if main_container.frame.SetResizeBounds then
-			main_container.frame:SetResizeBounds(900, 240)
+			main_container.frame:SetResizeBounds(770, 240)
 		else
-			main_container.frame:SetMinResize(900, 240)
+			main_container.frame:SetMinResize(770, 240)
 		end
 
 		--[[

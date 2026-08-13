@@ -5,7 +5,7 @@
 MiningData = {
     profession = "Mining",
     columns = {
-        { id = "Name",               width = 90 },
+        { id = "Name",               width = 110 },
         { id = "OrangeClassicMine",  width = 37,  group = "Mine",  exp = LE_EXPANSION_CLASSIC,         background = "orange" },
         { id = "YellowClassicMine",  width = 37,  group = "Mine",  exp = LE_EXPANSION_CLASSIC,         background = "yellow" },
         { id = "GreenClassicMine",   width = 37,  group = "Mine",  exp = LE_EXPANSION_CLASSIC,         background = "green" },
@@ -23,7 +23,7 @@ MiningData = {
         { id = "GreenTBCSmelt",      width = 37,  group = "Smelt", exp = LE_EXPANSION_BURNING_CRUSADE, background = "green" },
         { id = "GreyTBCSmelt",       width = 37,  group = "Smelt", exp = LE_EXPANSION_BURNING_CRUSADE, background = "grey" },
         { id = "Info",               width = 268, group = "Info" },
-        { id = "ItemLinkId",         width = 154, group = "Link" },
+        --{ id = "ItemLinkId",         width = 154, group = "Link" },
     },
     rows = {
         {

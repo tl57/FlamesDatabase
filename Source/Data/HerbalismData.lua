@@ -6,7 +6,7 @@
 HerbalismData = {
     profession = "Herbalism",
     columns = {
-        { id = "Name",              width = 122 },
+        { id = "Name",              width = 142 },
         { id = "OrangeClassicHerb", width = 37,  group = "Herb", exp = LE_EXPANSION_CLASSIC,         background = "orange" },
         { id = "YellowClassicHerb", width = 37,  group = "Herb", exp = LE_EXPANSION_CLASSIC,         background = "yellow" },
         { id = "GreenClassicHerb",  width = 37,  group = "Herb", exp = LE_EXPANSION_CLASSIC,         background = "green" },
@@ -16,7 +16,7 @@ HerbalismData = {
         { id = "GreenTBCHerb",      width = 37,  group = "Herb", exp = LE_EXPANSION_BURNING_CRUSADE, background = "green" },
         { id = "GreyTBCHerb",       width = 37,  group = "Herb", exp = LE_EXPANSION_BURNING_CRUSADE, background = "grey" },
         { id = "Info",              width = 380, group = "Info" },
-        { id = "ItemLinkId",        width = 149, group = "Link" },
+        --{ id = "ItemLinkId",        width = 149, group = "Link" },
     },
     rows = {
         {
