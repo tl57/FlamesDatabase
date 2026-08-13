@@ -1,0 +1,5 @@
+<Bindings>
+  <Binding name="FLAMESDATABASE_TOGGLE" Category="BINDING_HEADER_FLAMESDATABASE">
+    ToggleMainFrame()
+  </Binding>
+</Bindings>
