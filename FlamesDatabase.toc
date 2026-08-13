@@ -5,7 +5,7 @@
 ## Author: Flame
 ## SavedVariables: FlamesDatabase
 ## SavedVariablesPerCharacter: FlamesDatabaseCharSV
-## IconTexture
+## IconTexture: 134328
 
 
 embeds.xml
