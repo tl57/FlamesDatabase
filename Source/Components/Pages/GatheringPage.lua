@@ -125,10 +125,166 @@ local function BuildExpansionRadioGroup(onSelect)
     return group, levels[selected]
 end
 
+-- A Label showing `text`, with tooltip+click wired up like DataTable.lua's
+-- item cells (BuildRow, ItemLinkId column) when `itemLink` is given -
+-- Classic Era's FontString has no SetHyperlinksEnabled (that's what the
+-- single-FontString-with-embedded-links approach relied on, and it doesn't
+-- exist here), so each item link needs its own mouse-enabled widget instead
+-- of one shared region doing per-link hit-testing.
+-- The single-line height of GameFontHighlight text, measured once and
+-- reused for every recommendation row/segment - matches introLbl/skillLbl/
+-- recommendationsLbl's own natural (unforced) Label height exactly, instead
+-- of guessing at a constant that ends up taller than the actual glyphs and
+-- reads as extra vertical space between rows.
+local ROW_TEXT_HEIGHT
+local function GetRowTextHeight()
+    if not ROW_TEXT_HEIGHT then
+        local probe = AceGUI:Create("Label")
+        probe:SetFontObject(GameFontHighlight)
+        probe:SetText("Wg")
+        ROW_TEXT_HEIGHT = math.ceil(probe.label:GetStringHeight())
+        AceGUI:Release(probe)
+    end
+    return ROW_TEXT_HEIGHT
+end
+
+local function AddRecommendationSegment(group, text, itemLink)
+    local lbl = AceGUI:Create("Label")
+    lbl:SetFontObject(GameFontHighlight)
+    lbl:SetText(text)
+    lbl:SetWidth(math.ceil(lbl.label:GetStringWidth()) + 2)
+    lbl:SetHeight(GetRowTextHeight())
+
+    if itemLink then
+        lbl.frame:EnableMouse(true)
+        lbl.frame:SetScript("OnEnter", function()
+            GameTooltip:SetOwner(lbl.frame, "ANCHOR_RIGHT")
+            GameTooltip:SetHyperlink(itemLink)
+            GameTooltip:Show()
+        end)
+        lbl.frame:SetScript("OnLeave", function()
+            GameTooltip:Hide()
+        end)
+        lbl.frame:SetScript("OnMouseUp", function()
+            if IsModifiedClick("CHATLINK") then
+                ChatEdit_InsertLink(itemLink)
+            end
+        end)
+    end
+
+    group:AddChild(lbl)
+end
+
+-- A Flow-layout SimpleGroup that AddRecommendationSegment's calls append
+-- into left-to-right - i.e. one logical row.
+local function BuildRecommendationRow(scroll)
+    local row = AceGUI:Create("SimpleGroup")
+    row:SetLayout("Flow")
+    row:SetFullWidth(true)
+    row:SetAutoAdjustHeight(false)
+    row:SetHeight(GetRowTextHeight())
+    scroll:AddChild(row)
+    return row
+end
+
+-- Clears `row`'s current segments (its placeholder, or a previous fill) and
+-- adds fresh ones from `segments`, an ordered list of either plain strings
+-- (plain text) or `{ link = itemLink }` tables (clickable/tooltippable item
+-- link) - see AddRecommendationSegment.
+local function FillRecommendationRow(row, segments)
+    row:ReleaseChildren()
+    for _, segment in ipairs(segments) do
+        if type(segment) == "table" then
+            AddRecommendationSegment(row, segment.link, segment.link)
+        else
+            AddRecommendationSegment(row, segment)
+        end
+    end
+end
+
+-- Two rows mixing plain text with 5 resolved item links: gloves (Alliance,
+-- Horde) on the first row, enchant + 2 materials on the second - see
+-- `recommendations`' shape on GatheringPage:AddHeader. Items load
+-- asynchronously (Item:CreateFromItemID + ContinueOnItemLoad - same API
+-- DataTable.lua's BuildRow uses for its ItemLinkId column), so the first
+-- row shows a placeholder until all 5 have resolved, then both rows are
+-- filled in one pass.
+local function BuildRecommendationLinksRow(scroll, recommendations)
+    local itemIds = {
+        2119,
+        711,
+        recommendations.enchantItemId,
+        recommendations.materialItemIds[1],
+        recommendations.materialItemIds[2],
+    }
+
+    local glovesheaderRow = BuildRecommendationRow(scroll)
+    local glovesAllianceRow = BuildRecommendationRow(scroll)
+    local glovesHordeRow = BuildRecommendationRow(scroll)
+    local enchantRow = BuildRecommendationRow(scroll)
+    --AddRecommendationSegment(glovesRow, "Loading recommendations...")
+
+    local links = {}
+    local pending = #itemIds
+
+    local function finalize()
+        if pending > 0 then
+            return
+        end
+
+        FillRecommendationRow(glovesheaderRow, {
+            "1.1) Grab white gloves from your Faction's starting area",
+        })
+
+        FillRecommendationRow(glovesAllianceRow, {
+            "1.1.1) Alliance: ",
+            { link = links[1] },
+            " - Northshire Abbey, Darnassus, Kharanos",
+        })
+
+        FillRecommendationRow(glovesHordeRow, {
+            "1.1.2) Horde: ",
+            { link = links[2] },
+            " - Valley of Trials, Undercity, Deathknell",
+        })
+
+        FillRecommendationRow(enchantRow, {
+            "1.2) Enchant it with ",
+            { link = links[3] },
+            " - ",
+            { link = links[4] },
+            "x3 ",
+            { link = links[5] },
+            "x3",
+        })
+    end
+
+    for i, itemId in ipairs(itemIds) do
+        local item = Item:CreateFromItemID(itemId)
+        if item:IsItemEmpty() then
+            links[i] = ("Item #%d"):format(itemId)
+            pending = pending - 1
+        else
+            item:ContinueOnItemLoad(function()
+                links[i] = item:GetItemLink()
+                pending = pending - 1
+                finalize()
+            end)
+        end
+    end
+    finalize()
+end
+
 -- Adds the skill label + spacer + expansion radio group + spacer + DataTable
--- to `scroll`. `parent` is passed through to DataTable:Build unchanged (see
+-- to `scroll`, then, if `recommendations` is given, a "Recommendations:"
+-- section below the table: a shared intro line and a line of gear links
+-- (`recommendations.allianceGlovesId`, `.hordeGlovesId`, `.enchantItemId`,
+-- `.materialItemIds` - a 2-item array), all plain itemIDs.
+-- `recommendations` is optional - gathering professions that don't have a
+-- gear recommendation (e.g. Skinning) should just pass nil.
+-- `parent` is passed through to DataTable:Build unchanged (see
 -- DataTable.lua).
-function GatheringPage:AddHeader(scroll, parent, profession, data)
+function GatheringPage:AddHeader(scroll, parent, profession, data, recommendations)
     local skillLbl = AceGUI:Create("Label")
     skillLbl:SetFullWidth(true)
     skillLbl:SetFontObject(GameFontHighlightLarge)
@@ -187,14 +343,28 @@ function GatheringPage:AddHeader(scroll, parent, profession, data)
 
     scroll:AddChild(BuildSpacer())
 
-    trailingSpacer = BuildSpacer()
-    scroll:AddChild(trailingSpacer)
+    -- trailingSpacer stays nil (RebuildTable just appends the table) when
+    -- there's no recommendations section to keep it above.
+    if recommendations then
+        trailingSpacer = BuildSpacer()
+        scroll:AddChild(trailingSpacer)
 
-    local recommendationsLbl = AceGUI:Create("Label")
-    recommendationsLbl:SetFullWidth(true)
-    recommendationsLbl:SetFontObject(GameFontHighlightLarge)
-    recommendationsLbl:SetText("Recommendations:")
-    scroll:AddChild(recommendationsLbl)
+        local recommendationsLbl = AceGUI:Create("Label")
+        recommendationsLbl:SetFullWidth(true)
+        recommendationsLbl:SetFontObject(GameFontHighlightLarge)
+        recommendationsLbl:SetText("Recommendations:")
+        scroll:AddChild(recommendationsLbl)
+
+        local introLbl = AceGUI:Create("Label")
+        introLbl:SetFullWidth(true)
+        introLbl:SetFontObject(GameFontHighlight)
+        introLbl:SetText("1) Gloves with +profession skill")
+        scroll:AddChild(introLbl)
+
+        BuildRecommendationLinksRow(scroll, recommendations)
+
+        scroll:AddChild(BuildSpacer())
+    end
 
     RebuildTable(initialExpansion)
 end
