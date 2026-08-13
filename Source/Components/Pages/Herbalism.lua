@@ -4,7 +4,9 @@ Herbalism = {}
 
 local Recommendations = {
     enchantItemId = 11205,
+    enchantItemIconId = 134327,
     materialItemIds = { 11137, 8838 },
+    materialItemIconIds = { 132859, 134199 },
 }
 
 -- Build and return the content widget for the "Herbalism" page.

@@ -148,7 +148,18 @@ local function GetRowTextHeight()
     return ROW_TEXT_HEIGHT
 end
 
-local function AddRecommendationSegment(group, text, itemLink)
+local function AddRecommendationSegment(group, text, itemLink, iconId)
+    if iconId then
+        local icon = AceGUI:Create("Label")
+        icon:SetText("")
+        icon:SetImage(iconId)
+        local size = GetRowTextHeight()
+        icon:SetImageSize(size, size)
+        icon:SetWidth(size)
+        icon:SetHeight(size)
+        group:AddChild(icon)
+    end
+
     local lbl = AceGUI:Create("Label")
     lbl:SetFontObject(GameFontHighlight)
     lbl:SetText(text)
@@ -195,7 +206,7 @@ local function FillRecommendationRow(row, segments)
     row:ReleaseChildren()
     for _, segment in ipairs(segments) do
         if type(segment) == "table" then
-            AddRecommendationSegment(row, segment.link, segment.link)
+            AddRecommendationSegment(row, segment.link, segment.link, segment.icon)
         else
             AddRecommendationSegment(row, segment)
         end
@@ -217,18 +228,24 @@ local function BuildRecommendationLinksRow(scroll, recommendations)
         recommendations.materialItemIds[1],
         recommendations.materialItemIds[2],
     }
+    local iconIds = {
+        132952,
+        132961,
+        recommendations.enchantItemIconId,
+        recommendations.materialItemIconIds[1],
+        recommendations.materialItemIconIds[2],
+    }
 
     local glovesheaderRow = BuildRecommendationRow(scroll)
     local glovesAllianceRow = BuildRecommendationRow(scroll)
     local glovesHordeRow = BuildRecommendationRow(scroll)
     local enchantRow = BuildRecommendationRow(scroll)
-    --AddRecommendationSegment(glovesRow, "Loading recommendations...")
 
     local links = {}
-    local pending = #itemIds
+    local pendingItemIds = #itemIds
 
     local function finalize()
-        if pending > 0 then
+        if pendingItemIds > 0 then
             return
         end
 
@@ -238,23 +255,23 @@ local function BuildRecommendationLinksRow(scroll, recommendations)
 
         FillRecommendationRow(glovesAllianceRow, {
             "1.1.1) Alliance: ",
-            { link = links[1] },
+            { link = links[1], icon = iconIds[1] },
             " - Northshire Abbey, Darnassus, Kharanos",
         })
 
         FillRecommendationRow(glovesHordeRow, {
             "1.1.2) Horde: ",
-            { link = links[2] },
+            { link = links[2], icon = iconIds[2] },
             " - Valley of Trials, Undercity, Deathknell",
         })
 
         FillRecommendationRow(enchantRow, {
             "1.2) Enchant it with ",
-            { link = links[3] },
+            { link = links[3], icon = iconIds[3] },
             " - ",
-            { link = links[4] },
+            { link = links[4], icon = iconIds[4] },
             "x3 ",
-            { link = links[5] },
+            { link = links[5], icon = iconIds[5] },
             "x3",
         })
     end
@@ -263,11 +280,11 @@ local function BuildRecommendationLinksRow(scroll, recommendations)
         local item = Item:CreateFromItemID(itemId)
         if item:IsItemEmpty() then
             links[i] = ("Item #%d"):format(itemId)
-            pending = pending - 1
+            pendingItemIds = pendingItemIds - 1
         else
             item:ContinueOnItemLoad(function()
                 links[i] = item:GetItemLink()
-                pending = pending - 1
+                pendingItemIds = pendingItemIds - 1
                 finalize()
             end)
         end
