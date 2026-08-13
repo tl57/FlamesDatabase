@@ -10,6 +10,7 @@ part, then keep adding profession-specific widgets (e.g. a "Recommended gear"
 section) before returning the scroll.
 -------------------------------------------------------------------------------]]
 local AceGUI = LibStub("AceGUI-3.0")
+local profession = nil
 
 GatheringPage = {}
 
@@ -302,6 +303,7 @@ end
 -- `parent` is passed through to DataTable:Build unchanged (see
 -- DataTable.lua).
 function GatheringPage:AddHeader(scroll, parent, profession, data, recommendations)
+    profession = profession
     local skillLbl = AceGUI:Create("Label")
     skillLbl:SetFullWidth(true)
     skillLbl:SetFontObject(GameFontHighlightLarge)
@@ -375,7 +377,7 @@ function GatheringPage:AddHeader(scroll, parent, profession, data, recommendatio
         local introLbl = AceGUI:Create("Label")
         introLbl:SetFullWidth(true)
         introLbl:SetFontObject(GameFontHighlight)
-        introLbl:SetText("1) Gloves with +profession skill")
+        introLbl:SetText("1) Gloves with +".. profession .." skill")
         scroll:AddChild(introLbl)
 
         BuildRecommendationLinksRow(scroll, recommendations)
