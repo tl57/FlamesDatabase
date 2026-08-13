@@ -95,7 +95,19 @@ local function BuildExpansionRadioGroup(onSelect)
     -- afterward) makes both default to the same alignoffset.
     label:SetHeight(24)
 
-    group:SetWidth(labelWidth + BUTTON_WIDTH * #levels)
+    local totalWidth = labelWidth + BUTTON_WIDTH * #levels
+    group:SetWidth(totalWidth)
+    -- SimpleGroup's Flow layout reads content.width (see AceGUI-3.0.lua's
+    -- OnWidthSet), which SetWidth only updates indirectly via the frame's
+    -- OnSizeChanged script - that fires asynchronously, not before the
+    -- DoLayout call inside AddChild below runs. On a `group` recycled from
+    -- AceGUI's widget pool (shared across every addon's SimpleGroups), that
+    -- left content.width holding whatever this instance's content was last
+    -- sized to, which could be narrower than our real total - intermittently
+    -- wrapping the last button onto a second row that ends up clipped from
+    -- view. Setting it directly here (exactly what OnWidthSet would
+    -- eventually do) makes Flow's width check see our real total right away.
+    group.content.width = totalWidth
     group:AddChild(label)
 
     local buttons = {}
