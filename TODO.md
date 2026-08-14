@@ -6,3 +6,6 @@
 - [x] add support for keybind usage - to open the main window
 - [ ] rescan for usage of Blizzard Functions and move them to Functions instead
 - [ ] instead of quest links, use Questie links if Questie addon is found
+- [ ] finish DungeonQuestData.lua
+- [ ] finish DungeonInfoData.lua
+- [ ] support slash commands - use `AceConfigCmd`'s `CreateChatCommand` (in `options.lua`) so `/flamesdatabase` (or similar) opens the options/main window; this is also what will put the currently-unused `AceConsole-3.0` lib to actual use
