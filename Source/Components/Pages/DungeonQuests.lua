@@ -14,7 +14,7 @@ function DungeonQuests:Build(parent)
     scroll:SetLayout("List")
 
     for _, dungeon in ipairs(Dungeons) do
-        dungeon:AddRows(scroll)
+        DungeonEntry:AddRows(scroll, parent, dungeon)
     end
 
     return scroll

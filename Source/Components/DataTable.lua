@@ -25,6 +25,12 @@ If a row has an `ItemLinkId` (an itemID, not part of `columns`), the Name
 column shows that item's icon and gets tooltip/shift-click-to-chat behavior,
 while still displaying the row's own Name text (see WireItemCell).
 
+If a row has a `QuestLinkId` (a questID, not part of `columns`) instead, the
+Name column gets the same tooltip/shift-click-to-chat behavior wired to a
+quest hyperlink rather than an item one (see WireQuestCell). An optional
+`QuestLevel` (also not part of `columns`) is used when building the link's
+level field. ItemLinkId and QuestLinkId are mutually exclusive per row.
+
 When `selectedExpansion` is given (one of Functions_General:GetExpansionLevels()),
 only columns with no `exp` or with `exp == selectedExpansion` are included -
 `exp` otherwise has no visual effect of its own (no separate header row for
@@ -250,6 +256,43 @@ local function WireItemCell(cell, itemId, displayText)
     end)
 end
 
+-- Resolves `questId` into a real quest hyperlink where possible (falls back
+-- to a manually-built "quest:id:level" link, in the same hyperlink format,
+-- if the client doesn't have the quest's title cached yet), and turns `cell`
+-- into a link-aware cell: wires GameTooltip:SetHyperlink on hover and
+-- ChatEdit_InsertLink on shift-click - the quest-link counterpart to
+-- WireItemCell above. Unlike items, a quest's link text resolves
+-- synchronously (no item cache / ContinueOnItemLoad-style async load to wait
+-- on), so this wires everything up immediately rather than deferring to a
+-- callback. `displayText`, if given, is shown instead of the link's own
+-- bracketed title text (mirrors WireItemCell's `displayText`).
+local function WireQuestCell(cell, questId, level, displayText)
+    local questLink = (GetQuestLink and GetQuestLink(questId))
+        or ("|cffffff00|Hquest:%d:%d|h[%s]|h|r"):format(questId, level or 0, displayText or ("Quest " .. questId))
+
+    cell.text:SetText(displayText or questLink)
+    -- displayText (the row's own Name string) has no color codes of its own,
+    -- unlike questLink's raw text - without this it'd read as plain white
+    -- text with no visual sign it's a clickable/hoverable link. Standard
+    -- WoW quest-hyperlink yellow (matches the |cffffff00 used above).
+    cell.text:SetTextColor(1, 1, 0)
+
+    cell:EnableMouse(true)
+    cell:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
+        GameTooltip:SetHyperlink(questLink)
+        GameTooltip:Show()
+    end)
+    cell:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
+    cell:SetScript("OnMouseUp", function()
+        if IsModifiedClick("CHATLINK") then
+            ChatEdit_InsertLink(questLink)
+        end
+    end)
+end
+
 -- Build one row's cells directly under `container`, anchored at a fixed
 -- vertical offset. The table is sized to fit all of them (the page around it
 -- scrolls).
@@ -286,17 +329,22 @@ local function BuildRow(container, row, columns, yOffset, skill)
 
         if i == 1 then
             -- Name column: always display the row's own Name string (never
-            -- the item's own link text), and keep the skill-diff tint. When
-            -- this row also has an ItemLinkId, additionally show that item's
-            -- icon and wire up tooltip/shift-click-to-chat via WireItemCell,
-            -- pinning `value` as the text so it keeps reading e.g. "Copper"
-            -- instead of switching to the item's own link label once loaded.
+            -- the item's/quest's own link text), and keep the skill-diff
+            -- tint. When this row also has an ItemLinkId, additionally show
+            -- that item's icon and wire up tooltip/shift-click-to-chat via
+            -- WireItemCell, pinning `value` as the text so it keeps reading
+            -- e.g. "Copper" instead of switching to the item's own link
+            -- label once loaded. QuestLinkId is the same idea for a quest
+            -- hyperlink instead (see WireQuestCell) - mutually exclusive
+            -- with ItemLinkId.
             cell.text:SetText(value or "")
             if nameColor then
                 cell.text:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
             end
             if row.ItemLinkId then
                 WireItemCell(cell, row.ItemLinkId, value)
+            elseif row.QuestLinkId then
+                WireQuestCell(cell, row.QuestLinkId, row.QuestLevel, value)
             end
         else
             cell.text:SetText(value or "")
@@ -399,7 +447,9 @@ function DataTable:Build(parent, options, selectedExpansion)
     container.cellsUsed = 0
 
     -- Header row. Consecutive columns sharing a `group` value are merged into
-    -- one cell; other columns show column.title if provided, else column.name.
+    -- one cell; other columns show column.title if provided, else
+    -- column.name, else column.id (e.g. quest columns that only ever set
+    -- `id`/`width`, with no separate display-name field).
     local header = AcquireRow(container, container)
     header:SetPoint("TOPLEFT", container, "TOPLEFT", 0, 0)
     header:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, 0)
@@ -412,7 +462,7 @@ function DataTable:Build(parent, options, selectedExpansion)
     while i <= #columns do
         local col = columns[i]
         local cellWidth = col.width
-        local label = col.title or col.name
+        local label = col.title or col.name or col.id
         local justify = "LEFT"
 
         if col.group then
