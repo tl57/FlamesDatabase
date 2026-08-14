@@ -138,6 +138,13 @@ local function AcquireCell(container, parent)
         cell.icon = cell:CreateTexture(nil, "ARTWORK")
         cell.icon:SetSize(ICON_SIZE, ICON_SIZE)
         cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        -- Cells are a fixed single-line ROW_HEIGHT tall - without this,
+        -- long text wraps to a second line that gets clipped by the cell's
+        -- fixed height anyway, and (for reasons not fully pinned down)
+        -- whether a given cell wraps has been observed to flip inconsistently
+        -- depending on how many other DataTables happen to be built/alive at
+        -- the same time. Forcing it off keeps every cell single-line always.
+        cell.text:SetWordWrap(true)
         cell.text:SetPoint("RIGHT", -PADDING, 0)
         container.cellPool[n] = cell
     end
@@ -167,6 +174,16 @@ end
 -- skipTop/skipLeft to omit those edges (e.g. for the table's first cell).
 local function LayoutCell(cell, width, height, skipTop, skipLeft)
     cell:SetSize(width, height)
+
+    -- cell.text is anchored via LEFT+RIGHT points (see AcquireCell), so its
+    -- word-wrap boundary is only ever implied by cell's own rendered width -
+    -- which, right after SetSize above, hasn't necessarily propagated yet
+    -- (frame geometry changes can take a frame to settle). Giving it this
+    -- width explicitly makes the wrap boundary apply immediately instead of
+    -- only after something else later forces a layout pass (e.g. building
+    -- another DataTable, or resizing the window).
+    cell.text:SetWidth(math.max(width - 2 * PADDING, 0))
+
     local t = BORDER_THICKNESS
 
     cell.edgeTop:ClearAllPoints()
