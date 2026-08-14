@@ -5,7 +5,7 @@ FlamesDatabase = FlamesDatabase or {}
 -- get current addon version
 local version = Functions_General:GetAddonMetadata(addonName, "Version")
 -- debug variable
-debug = true
+debug = false
 print("FlamesDatabase loaded!")
 
 -- changelog frame
