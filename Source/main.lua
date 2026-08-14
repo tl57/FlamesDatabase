@@ -21,6 +21,7 @@ end
 
 local function ShowNewInstall()
     FlamesDatabase.settings.shownNewInstall = true
+    showWelcomeFrame()
     if debug then print("showing new install dialog") end
 end
 

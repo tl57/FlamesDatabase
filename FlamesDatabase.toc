@@ -18,6 +18,8 @@ Source/Tools/Functions/General.lua
 Source/Tools/Functions/Professions.lua
 Source/Tools/Functions/GeneralUI.lua
 Source/Components/DungeonEntry.lua
+Source/Data/ChangelogData.lua
+Source/Data/WelcomeData.lua
 Source/Data/Professions/MiningData.lua
 Source/Data/Professions/HerbalismData.lua
 Source/Data/Dungeons/DungeonInfoData.lua
@@ -32,8 +34,8 @@ Source/Components/TabGroups/TabProfessions.lua
 Source/Components/TabGroups/TabDungeons.lua
 Source/Components/TabGroups/CategoryTabs.lua
 Source/mainframe.lua
-Source/Data/Changelogs/ChangelogData.lua
 Source/changelogframe.lua
+Source/welcomeframe.lua
 Source/main.lua
 Source/minimap.lua
 Source/options.lua
