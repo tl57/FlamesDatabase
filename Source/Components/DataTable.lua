@@ -21,6 +21,17 @@ Rows are keyed by column id. Values that are nil render as empty cells.
 Consecutive columns sharing the same `group` value are merged into one header
 cell; other columns show column.title if provided, else column.name.
 
+Non-Name columns can tint their text: `column.background` (a key into
+CELL_BACKGROUND_COLORS) gives every cell in the column the same fixed color;
+`column.valueColors` (e.g. { Horde = {0.9,0.2,0.2}, Alliance = {0.3,0.55,0.95} })
+instead looks the color up by each cell's own value - values with no entry
+stay untinted. At most one of the two applies per column in practice.
+
+`column.valueBackgrounds` is the same value-lookup idea as `valueColors`, but
+fills the cell's own background texture instead of its text (e.g.
+{ Minimum = {0,1,0}, Medium = {1,1,0}, Maximum = {1,0,0} }, each {r,g,b[,a]} -
+alpha defaults to 0.35). A value with no entry stays unfilled.
+
 If a row has an `ItemLinkId` (an itemID, not part of `columns`), the Name
 column shows that item's icon and gets tooltip/shift-click-to-chat behavior,
 while still displaying the row's own Name text (see WireItemCell).
@@ -128,6 +139,7 @@ local function AcquireCell(container, parent)
     if not cell then
         cell = CreateFrame("Frame", nil, parent)
         cell.bg = cell:CreateTexture(nil, "BACKGROUND")
+        cell.bg:SetAllPoints(cell)
         cell.edgeTop = cell:CreateTexture(nil, "BORDER")
         cell.edgeBottom = cell:CreateTexture(nil, "BORDER")
         cell.edgeLeft = cell:CreateTexture(nil, "BORDER")
@@ -366,9 +378,28 @@ local function BuildRow(container, row, columns, yOffset, skill)
         else
             cell.text:SetText(value or "")
 
+            -- col.background gives every cell in the column the same fixed
+            -- color; col.valueColors instead looks the color up by this
+            -- cell's own value (e.g. { Horde = {...}, Alliance = {...} } -
+            -- a value with no entry, like a future "Both", just stays
+            -- untinted). At most one applies per column in practice.
             local color = value ~= nil and col.background and CELL_BACKGROUND_COLORS[col.background]
+            if not color and value ~= nil and col.valueColors then
+                color = col.valueColors[value]
+            end
             if color then
                 cell.text:SetTextColor(color[1], color[2], color[3])
+            end
+
+            -- col.valueBackgrounds fills the cell's own background texture
+            -- (rather than tinting its text) based on this cell's value -
+            -- e.g. { Minimum = {0,1,0}, Medium = {1,1,0}, Maximum = {1,0,0} }.
+            -- AcquireCell hides cell.bg by default, so a value with no entry
+            -- just stays unfilled.
+            local bgColor = value ~= nil and col.valueBackgrounds and col.valueBackgrounds[value]
+            if bgColor then
+                cell.bg:SetColorTexture(bgColor[1], bgColor[2], bgColor[3], bgColor[4] or 0.35)
+                cell.bg:Show()
             end
         end
     end

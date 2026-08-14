@@ -9,14 +9,34 @@
 -- column is always shown (no per-expansion filtering), so the sum has to
 -- fit on its own without that headroom.
 local QuestColumns = {
-    { id = "Name",      name = "Name",      width = 170 },
-    { id = "Level",     name = "Lvl",       width = 31 },
-    { id = "Faction",   name = "Faction",   width = 59 },
-    { id = "NPC",       name = "NPC",       width = 135 },
-    { id = "Effort",    name = "Effort",    width = 68 },
-    { id = "Shareable", name = "Share?",    width = 50 },
-    { id = "Chain",     name = "Chain",     width = 46 },
-    { id = "Note",      name = "Note",      width = 450 },
+    { id = "Name",      title = "",         width = 170 },
+    { id = "Level",     title = "Lvl",       width = 31 },
+    {
+        id = "Faction", title = "Faction", width = 59,
+        valueColors = {
+            Horde    = { 0.90, 0.20, 0.20 },
+            Alliance = { 0.30, 0.55, 0.95 },
+            -- "Both" (and anything else unlisted) stays untinted.
+        },
+    },
+    { id = "NPC",       title = "NPC",       width = 135 },
+    {
+        id = "Effort", title = "Effort", width = 68,
+        valueBackgrounds = {
+            Minimum = { 0.20, 0.80, 0.20 },
+            Medium  = { 0.85, 0.80, 0.10 },
+            Maximum = { 0.90, 0.15, 0.15 },
+        },
+    },
+    {
+        id = "Shareable", title = "Share?", width = 50,
+        valueColors = {
+            No = { 0.90, 0.20, 0.20 },
+            -- "Yes" stays untinted.
+        },
+    },
+    { id = "Chain",     title = "Chain",     width = 46 },
+    { id = "Note",      title = "Note",      width = 450 },
 }
 
 RagefireChasm = {
