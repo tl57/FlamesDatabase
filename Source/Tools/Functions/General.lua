@@ -1,5 +1,12 @@
 Functions_General = {}
 
+-- GetAddOnMetadata moved: Classic Era uses the global GetAddOnMetadata,
+-- TBC Anniversary/Retail moved it to C_AddOns.GetAddOnMetadata.
+function Functions_General:GetAddonMetadata(addonName, field)
+    local getMetadata = GetAddOnMetadata or C_AddOns.GetAddOnMetadata
+    return getMetadata(addonName, field)
+end
+
 -- returns a single integer representing the expansion level
 -- 0 = Classic
 -- 1 = TBC
