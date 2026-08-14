@@ -39,3 +39,24 @@ local EXPANSION_NAMES = {
 function Functions_General:GetExpansionName(level)
     return EXPANSION_NAMES[level] or ("Expansion " .. tostring(level))
 end
+
+-- Compares two dot-separated version strings numerically (so "0.1.10" > "0.1.9",
+-- unlike a plain string comparison). Returns 1 if v1 > v2, -1 if v1 < v2, 0 if equal.
+function Functions_General:CompareVersions(v1, v2)
+    local function toParts(v)
+        local parts = {}
+        for part in tostring(v):gmatch("%d+") do
+            table.insert(parts, tonumber(part))
+        end
+        return parts
+    end
+
+    local p1, p2 = toParts(v1), toParts(v2)
+    for i = 1, math.max(#p1, #p2) do
+        local a, b = p1[i] or 0, p2[i] or 0
+        if a ~= b then
+            return a > b and 1 or -1
+        end
+    end
+    return 0
+end

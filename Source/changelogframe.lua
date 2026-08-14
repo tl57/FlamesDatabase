@@ -1,30 +1,72 @@
 local AceGUI = LibStub("AceGUI-3.0")
 local addonName = ...
--- think about focusing a specific frame when having a profession open or in a specific dungeon
+
+local changelog_frame = nil -- singleton: created once
+
+-- Returns ChangelogData entries newer than sinceVersion (newest first).
+-- With no sinceVersion (e.g. corrupted settings), everything is shown.
+local function GetEntriesSince(sinceVersion)
+	if not sinceVersion then
+		return ChangelogData
+	end
+
+	local entries = {}
+	for _, entry in ipairs(ChangelogData) do
+		if Functions_General:CompareVersions(entry.version, sinceVersion) > 0 then
+			table.insert(entries, entry)
+		end
+	end
+	return entries
+end
 
 function showChangeLogFrame()
-    --local changelog = AceGUI:Create("Frame") ---@type AceGUIFrame
-    --frame:RegisterEvent("PLAYER_LOGIN")
-    --frame:SetScript("OnEvent", function(self, event, ...)
-    --changelog:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-    --changelog:SetSize(400, 400)
-    --changelog:SetTitle("todo")
-    --changelog:SetCallback("OnClose", function(widget)
-        --AceGUI:Release(widget)
-        --changelog = nil
-    --end)
-	-- think about making the frame a singleton
-	local main_frame = AceGUI:Create("Frame")
-	main_frame:SetTitle(addonName)
-	main_frame:SetStatusText("Version ...")
-	main_frame:SetLayout("Fill")
-	main_frame:SetWidth(500)
-	main_frame:SetHeight(450)
-	main_frame:SetCallback("OnClose", function(widget) AceGUI:Release(widget); main_frame = nil end)
-	local scrollFrame = AceGUI:Create("ScrollFrame") scrollFrame:SetLayout("Flow")
-	main_frame:AddChild(scrollFrame)
-	scrollFrame:AddChild(AceGUI:Create("Label")) -- etc.
+	if changelog_frame then
+		changelog_frame:Show()
+		return
+	end
 
+	local currentVersion = Functions_General:GetAddonMetadata(addonName, "Version")
+	-- FlamesDatabase.settings.changelogVersion still holds the version the user
+	-- was on before this update at this point - main.lua only overwrites it
+	-- with currentVersion after showChangeLogFrame() returns.
+	local sinceVersion = FlamesDatabase.settings and FlamesDatabase.settings.changelogVersion
+	local entries = GetEntriesSince(sinceVersion)
+
+	changelog_frame = AceGUI:Create("Frame") ---@type AceGUIFrame
+	changelog_frame:SetTitle(addonName)
+	changelog_frame:SetStatusText("Version " .. currentVersion)
+	changelog_frame:SetLayout("Fill")
+	changelog_frame:SetWidth(500)
+	changelog_frame:SetHeight(450)
+	changelog_frame:SetCallback("OnClose", function(widget)
+		AceGUI:Release(widget)
+		changelog_frame = nil
+	end)
+
+	local scrollFrame = AceGUI:Create("ScrollFrame") ---@type AceGUIScrollFrame
+	scrollFrame:SetLayout("Flow")
+	changelog_frame:AddChild(scrollFrame)
+
+	if #entries == 0 then
+		local label = AceGUI:Create("Label") ---@type AceGUILabel
+		label:SetText("No changes to show.")
+		label:SetFullWidth(true)
+		scrollFrame:AddChild(label)
+	end
+
+	for _, entry in ipairs(entries) do
+		local versionHeading = AceGUI:Create("Heading") ---@type AceGUIHeading
+		versionHeading:SetText("Version " .. entry.version)
+		versionHeading:SetFullWidth(true)
+		scrollFrame:AddChild(versionHeading)
+
+		for _, change in ipairs(entry.changes) do
+			local line = AceGUI:Create("Label") ---@type AceGUILabel
+			line:SetText("[" .. change.category .. "] " .. change.text)
+			line:SetFullWidth(true)
+			scrollFrame:AddChild(line)
+		end
+	end
 
 	if debug then print("finished changelog code") end
 end
