@@ -31,7 +31,11 @@ function DungeonInfo:Build(parent)
 
         AddInfoRow(scroll, ("Zone ID: %s"):format(dungeon.zoneid or "?"))
         AddInfoRow(scroll, ("Mob Levels: %s-%s"):format(dungeon.minMobLevel or "?", dungeon.maxMobLevel or "?"))
-        AddInfoRow(scroll, ("Boss Levels: %s"):format(table.concat(dungeon.bossLevels or {}, ", ")))
+
+        AddInfoRow(scroll, "Boss Levels:")
+        for _, boss in ipairs(dungeon.bosses or {}) do
+            AddInfoRow(scroll, ("%s: %s"):format(boss.name, boss.level))
+        end
 
         scroll:AddChild(GeneralUI:BuildSpacer())
     end
