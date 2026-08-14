@@ -5,3 +5,4 @@
 - [ ] reorganize strings into Localization
 - [ ] add support for keybind usage - to open the main window
 - [ ] rescan for usage of Blizzard Functions and move them to Functions instead
+- [ ] instead of quest links, use Questie links if Questie addon is found
