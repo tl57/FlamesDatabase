@@ -12,7 +12,13 @@ function InitMinimapButton()
     icon = "Interface\\AddOns\\FlamesDatabase\\Images\\inv_misc_note_02.blp",
     OnClick = function(self, button)
       if button == "LeftButton" then
-        ToggleMainFrame()
+        if IsShiftKeyDown() then
+          showWelcomeFrame()
+        elseif IsControlKeyDown() then
+          showChangeLogFrame()
+        else
+          ToggleMainFrame()
+        end
       else
         ShowOptions()
       end
@@ -21,8 +27,8 @@ function InitMinimapButton()
       if not tooltip or not tooltip.AddLine then return end
       tooltip:AddLine(addonName)
 	  tooltip:AddLine(LOC.minimap_btn_left_click)
-	  --tooltip:AddLine(Deathlog_L.minimap_btn_ctrl_click)
-	  --tooltip:AddLine(Deathlog_L.minimap_btn_shift_click)
+	  tooltip:AddLine(LOC.minimap_btn_shift_click)
+	  tooltip:AddLine(LOC.minimap_btn_ctrl_click)
 	  tooltip:AddLine(LOC.minimap_btn_right_click .. GAMEOPTIONS_MENU)
     end,
   })

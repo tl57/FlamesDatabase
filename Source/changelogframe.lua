@@ -21,7 +21,11 @@ end
 
 function showChangeLogFrame()
 	if changelog_frame then
-		changelog_frame:Show()
+		if changelog_frame.frame:IsShown() then
+			changelog_frame.frame:Hide()
+		else
+			changelog_frame:Show()
+		end
 		return
 	end
 
