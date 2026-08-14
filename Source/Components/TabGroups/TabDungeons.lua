@@ -7,9 +7,14 @@ TabDungeons = {}
 function TabDungeons:Build(parent)
     local tabs = CategoryTabs:New({
         tabs = {
+            { value = "dungeonInfo",   text = "Dungeon Info" },
             { value = "dungeonQuests", text = "Dungeon Quests" },
         },
     })
+
+    tabs:AddPage("dungeonInfo", function(p)
+        return DungeonInfo:Build(p)
+    end)
 
     tabs:AddPage("dungeonQuests", function(p)
         return DungeonQuests:Build(p)
