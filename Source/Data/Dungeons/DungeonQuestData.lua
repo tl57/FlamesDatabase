@@ -40,7 +40,7 @@ local QuestColumns = {
     { id = "Note",      title = "Note",      width = 450 },
 }
 
-RagefireChasm = {
+RagefireChasmQuests = {
     name       = "Ragefire Chasm",
     columns    = QuestColumns,
     rows       = {
@@ -119,7 +119,7 @@ RagefireChasm = {
     },
 }
 
-Deadmines = {
+DeadminesQuests = {
     name       = "The Deadmines",
     columns    = QuestColumns,
     rows       = {

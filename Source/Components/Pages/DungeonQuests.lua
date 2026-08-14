@@ -3,8 +3,8 @@ local AceGUI = LibStub("AceGUI-3.0")
 DungeonQuests = {}
 
 local Dungeons = {
-    RagefireChasm,
-    Deadmines,
+    RagefireChasmQuests,
+    DeadminesQuests,
 }
 
 -- Build and return the content widget for the "Dungeon Quests" page.
