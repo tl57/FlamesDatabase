@@ -180,6 +180,20 @@ local function AddRecommendationSegment(group, text, itemLink, iconId)
                 ChatEdit_InsertLink(itemLink)
             end
         end)
+
+        -- AceGUI's Label widget pool is shared across the whole addon and
+        -- never resets custom frame scripts/EnableMouse on acquire, so
+        -- without this cleanup this exact frame could later be recycled as
+        -- an unrelated Label elsewhere while still carrying this item's
+        -- tooltip/click handlers - the tooltip/link would "bleed through"
+        -- onto that widget (see DungeonEntry.lua's BuildQuestLinkRow for
+        -- the same fix applied to quest links).
+        lbl:SetCallback("OnRelease", function(self)
+            self.frame:EnableMouse(false)
+            self.frame:SetScript("OnEnter", nil)
+            self.frame:SetScript("OnLeave", nil)
+            self.frame:SetScript("OnMouseUp", nil)
+        end)
     end
 
     group:AddChild(lbl)
