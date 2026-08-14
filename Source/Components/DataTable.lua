@@ -47,14 +47,22 @@ only columns with no `exp` or with `exp == selectedExpansion` are included -
 `exp` otherwise has no visual effect of its own (no separate header row for
 it), it's purely a filtering key.
 
-Row/header frames are pooled per AceGUI SimpleGroup and reused across rebuilds
-(see AcquireRow/AcquireCell) rather than always creating new ones - AceGUI
-recycles SimpleGroup widgets, and a given page (e.g. a profession tab) rebuilds
-its table via a fresh DataTable:Build call every time it's reselected. WoW has
-no API to destroy a frame, so never reusing them means each rebuild's cost
-keeps growing with how many times that recycled container has ever been built.
+Row/header frames are pooled per container frame and reused across rebuilds
+(see AcquireRow/AcquireCell) rather than always creating new ones - a given
+page (e.g. a profession tab) rebuilds its table via a fresh DataTable:Build
+call every time it's reselected, and WoW has no API to destroy a frame, so
+never reusing them means each rebuild's cost keeps growing with how many
+times that recycled container has ever been built.
 
-Returns the AceGUI SimpleGroup, ready to be added to a page builder.
+The container itself is a dedicated custom AceGUI widget type
+("FlamesDataTable", see AceGUIWidget-FlamesDataTable.lua) rather than the
+stock "SimpleGroup" - AceGUI pools widgets separately per registered type
+name, so this guarantees this frame (and the pooled row/cell frames
+attached directly to it, bypassing AceGUI's own child-tracking) is only
+ever reused for another DataTable, never handed to or received from any
+other widget in this addon.
+
+Returns the widget, ready to be added to a page builder.
 -------------------------------------------------------------------------------]]
 local AceGUI           = LibStub("AceGUI-3.0")
 
@@ -437,60 +445,24 @@ function DataTable:Build(parent, options, selectedExpansion)
     local width = options.width or totalWidth
     local height = HEADER_HEIGHT + (#rows * ROW_HEIGHT)
 
-    -- Container frame hosting header + rows.
-    local group = AceGUI:Create("SimpleGroup")
-    group:SetLayout("Fill")
+    -- Container frame hosting header + rows. A dedicated widget type (see
+    -- AceGUIWidget-FlamesDataTable.lua) - AceGUI pools widgets separately
+    -- per registered type name, so this frame is never shared with (or
+    -- polluted by) any other kind of widget in this addon, unlike the
+    -- stock "SimpleGroup" every spacer/section/etc. also draws from. No
+    -- defensive "hide whatever's already attached" cleanup is needed here
+    -- as a result: the only thing that can ever be attached is our own
+    -- pooled rows/cells (container.rowPool/cellPool below), which are
+    -- already correctly shown/hidden by AcquireRow/AcquireCell and the
+    -- hide-the-excess loop at the end of this function.
+    local group = AceGUI:Create("FlamesDataTable")
     local container = group.frame
     group:SetWidth(width)
     group:SetHeight(height)
 
-    -- AceGUI's SimpleGroup pool is shared by every SimpleGroup in the client
-    -- session (every addon using this AceGUI-3.0, not just this one) - a
-    -- frame that previously served as a table full of pooled row/cell
-    -- children can later be handed back to us as a "fresh" container, or
-    -- (worse) recycled elsewhere entirely as an unrelated widget (e.g. a
-    -- spacer) whose code has no idea about rowPool/cellPool and won't hide
-    -- them. Defensively hide everything already attached before
-    -- reusing/reshowing whichever of our own pooled children this build
-    -- actually needs. Cheap: pooling already bounds how many children a
-    -- container can ever accumulate, unlike before pooling existed.
-    --
-    -- group.content is always a direct child of container too (every
-    -- SimpleGroup has one, created in its own constructor) but is AceGUI's
-    -- own structural frame, not one of our pooled row/cell leftovers -
-    -- hiding it here would strand it hidden forever, since nothing in this
-    -- file ever shows it back (DataTable never uses AddChild/.content at
-    -- all). Any *other* widget later recycling this exact frame via
-    -- AddChild (e.g. a page using plain child widgets instead of raw
-    -- pooled frames) would then find its own content permanently invisible
-    -- despite doing everything right on its own end.
-    for _, child in ipairs({ container:GetChildren() }) do
-        if child ~= group.content then
-            child:Hide()
-        end
-    end
-
-    -- Hiding a parent doesn't change its children's own shown-state, only
-    -- their effective visibility while the parent stays hidden - so if this
-    -- container gets released (e.g. switching away from this page) and then
-    -- recycled for something unrelated (a spacer, another addon's widget)
-    -- before we ever rebuild into it again, that something else calling
-    -- :Show() on it would also resurface our still-"shown" leftover cells
-    -- riding along underneath. Closing that race requires cleaning up at
-    -- release time, not just at the next build - AceGUI calls this hook
-    -- when `group` is released, before the frame is handed back to the pool.
-    --
-    -- Only our own pooled row/cell frames (container.rowPool/cellPool) are
-    -- hidden here - NOT container:GetChildren(), which would also catch
-    -- AceGUI's own `content` sub-frame (always a direct child of the
-    -- container). content is what every other AceGUI widget gets parented
-    -- into via AddChild, and nothing ever calls content:Show() again once
-    -- hidden - so if this exact SimpleGroup instance later gets recycled
-    -- (from AceGUI's pool, shared across every SimpleGroup in the client)
-    -- into a container that actually uses AddChild (e.g. GatheringPage's
-    -- expansion radio group), hiding content here would permanently hide
-    -- all of that unrelated future content, with no tab-switch able to fix
-    -- it since content's hidden state persists on the recycled frame.
+    -- Belt-and-suspenders: makes sure a released-while-expanded table's
+    -- rows/cells are hidden immediately rather than relying solely on the
+    -- next build's hide-the-excess loop to catch them.
     group.OnRelease = function(self)
         for _, frame in ipairs(self.frame.rowPool or {}) do
             frame:Hide()
