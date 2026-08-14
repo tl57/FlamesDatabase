@@ -9,5 +9,4 @@
 - [ ] finish DungeonQuestData.lua
 - [ ] finish DungeonInfoData.lua
 - [ ] support slash commands - use `AceConfigCmd`'s `CreateChatCommand` (in `options.lua`) so `/flamesdatabase` (or similar) opens the options/main window; this is also what will put the currently-unused `AceConsole-3.0` lib to actual use
-- [ ] properly fill the Welcome page
-- [x] start implementing the changelog page
+- [x] properly fill the Welcome page

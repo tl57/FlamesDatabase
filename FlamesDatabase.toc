@@ -19,7 +19,6 @@ Source/Tools/Functions/Professions.lua
 Source/Tools/Functions/GeneralUI.lua
 Source/Components/DungeonEntry.lua
 Source/Data/ChangelogData.lua
-Source/Data/WelcomeData.lua
 Source/Data/Professions/MiningData.lua
 Source/Data/Professions/HerbalismData.lua
 Source/Data/Dungeons/DungeonInfoData.lua
