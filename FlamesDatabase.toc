@@ -32,6 +32,7 @@ Source/Components/TabGroups/TabProfessions.lua
 Source/Components/TabGroups/TabDungeons.lua
 Source/Components/TabGroups/CategoryTabs.lua
 Source/mainframe.lua
+Source/Data/Changelogs/ChangelogData.lua
 Source/changelogframe.lua
 Source/main.lua
 Source/minimap.lua
