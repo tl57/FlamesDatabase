@@ -58,11 +58,13 @@ function toggleMainFrame()
 			parent = main_container,
 			tabs = {
 				{ value = "Professions", text = "Professions" },
+				{ value = "Dungeons",    text = "Dungeons" },
 				{ value = "spells",      text = "Spells" },
 				{ value = "items",       text = "Items" },
 			},
 		})
 		tabs:AddPage("Professions", TabProfessions.Build)
+		tabs:AddPage("Dungeons", TabDungeons.Build)
 	end
 	main_container:Show()
 

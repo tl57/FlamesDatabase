@@ -14,20 +14,6 @@ local profession = nil
 
 GatheringPage = {}
 
--- Vertical gap between header sections. A SimpleGroup rather than a Label:
--- Label recomputes its own height from its FontString's text any time
--- UpdateImageAnchor runs, which clobbers a manually set height. SimpleGroup
--- only auto-resizes via LayoutFinished (summing its children's height),
--- which SetAutoAdjustHeight disables outright, leaving our explicit height
--- alone. Returns the widget rather than adding it itself, since RebuildTable
--- below needs to hang onto one instance as an insertion anchor.
-local function BuildSpacer()
-    local spacer = AceGUI:Create("SimpleGroup")
-    spacer:SetAutoAdjustHeight(false)
-    spacer:SetHeight(12)
-    return spacer
-end
-
 -- A row of mutually-exclusive radio buttons, one per expansion this addon
 -- knows about (Functions_General:GetExpansionLevels), with the one matching
 -- the realm's current expansion pre-selected. AceGUI has no dedicated
@@ -341,7 +327,7 @@ function GatheringPage:AddHeader(scroll, parent, profession, data, recommendatio
     skillLbl:SetText(skillText)
     scroll:AddChild(skillLbl)
 
-    scroll:AddChild(BuildSpacer())
+    scroll:AddChild(GeneralUI:BuildSpacer())
 
     -- Replaced in place (see RebuildTable) whenever the radio group's
     -- selected expansion changes, rather than rebuilding the whole page.
@@ -372,12 +358,12 @@ function GatheringPage:AddHeader(scroll, parent, profession, data, recommendatio
     local radioGroup, initialExpansion = BuildExpansionRadioGroup(RebuildTable)
     scroll:AddChild(radioGroup)
 
-    scroll:AddChild(BuildSpacer())
+    scroll:AddChild(GeneralUI:BuildSpacer())
 
     -- trailingSpacer stays nil (RebuildTable just appends the table) when
     -- there's no recommendations section to keep it above.
     if recommendations then
-        trailingSpacer = BuildSpacer()
+        trailingSpacer = GeneralUI:BuildSpacer()
         scroll:AddChild(trailingSpacer)
 
         local recommendationsLbl = AceGUI:Create("Label")
@@ -394,7 +380,7 @@ function GatheringPage:AddHeader(scroll, parent, profession, data, recommendatio
 
         BuildRecommendationLinksRow(scroll, recommendations)
 
-        scroll:AddChild(BuildSpacer())
+        scroll:AddChild(GeneralUI:BuildSpacer())
     end
 
     RebuildTable(initialExpansion)
