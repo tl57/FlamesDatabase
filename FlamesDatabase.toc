@@ -17,6 +17,7 @@ Source/Tools/Functions/GeneralUI.lua
 Source/Components/DungeonEntry.lua
 Source/Data/Professions/MiningData.lua
 Source/Data/Professions/HerbalismData.lua
+Source/Data/Dungeons/DungeonInfoData.lua
 Source/Data/Dungeons/DungeonQuestData.lua
 Source/Components/DataTable.lua
 Source/Components/Pages/GatheringPage.lua

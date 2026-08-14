@@ -1,7 +1,8 @@
 -- DungeonQuestData
 -- Static data for dungeon quest tables.
--- Exposes one global table per dungeon (name, zoneid, bossLevels, minMobLevel,
--- maxMobLevel, columns, rows), consumed by DungeonQuests.lua via DataTable.
+-- Exposes one global table per dungeon (name, columns, rows), consumed by
+-- DungeonQuests.lua via DataTable. Zone id/boss levels/mob level range live
+-- separately in DungeonInfoData.lua.
 
 -- Column layout for a dungeon's quest table (see DataTable.lua). Widths sum
 -- to comfortably fit the 770px main window (see mainframe.lua) alongside
@@ -41,10 +42,6 @@ local QuestColumns = {
 
 RagefireChasm = {
     name       = "Ragefire Chasm",
-    zoneid     = 2437,
-    bossLevels = { 16, 16, 16, 16 },
-    minMobLevel  = 13,
-    maxMobLevel  = 16,
     columns    = QuestColumns,
     rows       = {
         {
@@ -124,10 +121,6 @@ RagefireChasm = {
 
 Deadmines = {
     name       = "The Deadmines",
-    zoneid     = 1581,
-    bossLevels = { 19, 20, 20, 20, 20, 20, 21 },
-    minMobLevel  = 16,
-    maxMobLevel  = 20,
     columns    = QuestColumns,
     rows       = {
         {
