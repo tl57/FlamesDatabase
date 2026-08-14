@@ -7,6 +7,7 @@
 ## SavedVariablesPerCharacter: FlamesDatabaseCharSV
 ## IconTexture: 134328
 
+## X-Curse-Project-ID: 1639342
 
 embeds.xml
 
