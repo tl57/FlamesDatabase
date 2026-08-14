@@ -19,3 +19,48 @@ function GeneralUI:BuildSpacer()
     spacer:SetHeight(12)
     return spacer
 end
+
+-- Add a collapsible header ("+ title"/"- title") to `scroll`, collapsed by
+-- default, followed by a spacer. Clicking it lazily calls `buildContent()`
+-- to build the content widget the first time it's expanded, inserting it
+-- between the header and the spacer; collapsing releases and removes it.
+-- `buildContent` is only ever called while expanding, so it can stay cheap
+-- (or skipped entirely) for sections a user never opens.
+function GeneralUI:AddCollapsibleSection(scroll, title, buildContent)
+    local expanded = false
+    local contentWidget
+
+    local header = AceGUI:Create("InteractiveLabel")
+    header:SetFullWidth(true)
+    header:SetFontObject(GameFontHighlightLarge)
+    header:SetText("+ " .. title)
+
+    local spacer = self:BuildSpacer()
+
+    header:SetCallback("OnClick", function()
+        expanded = not expanded
+        header:SetText((expanded and "- " or "+ ") .. title)
+
+        if expanded then
+            contentWidget = buildContent()
+            -- beforeWidget = spacer inserts the content between the header
+            -- and the trailing spacer (AddChild triggers DoLayout itself).
+            scroll:AddChild(contentWidget, spacer)
+        elseif contentWidget then
+            -- AceGUI has no RemoveChild - pull the widget out of
+            -- scroll.children directly, then release it and reflow.
+            for idx, child in ipairs(scroll.children) do
+                if child == contentWidget then
+                    table.remove(scroll.children, idx)
+                    break
+                end
+            end
+            AceGUI:Release(contentWidget)
+            contentWidget = nil
+            scroll:DoLayout()
+        end
+    end)
+
+    scroll:AddChild(header)
+    scroll:AddChild(spacer)
+end
