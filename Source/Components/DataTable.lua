@@ -454,8 +454,20 @@ function DataTable:Build(parent, options, selectedExpansion)
     -- reusing/reshowing whichever of our own pooled children this build
     -- actually needs. Cheap: pooling already bounds how many children a
     -- container can ever accumulate, unlike before pooling existed.
+    --
+    -- group.content is always a direct child of container too (every
+    -- SimpleGroup has one, created in its own constructor) but is AceGUI's
+    -- own structural frame, not one of our pooled row/cell leftovers -
+    -- hiding it here would strand it hidden forever, since nothing in this
+    -- file ever shows it back (DataTable never uses AddChild/.content at
+    -- all). Any *other* widget later recycling this exact frame via
+    -- AddChild (e.g. a page using plain child widgets instead of raw
+    -- pooled frames) would then find its own content permanently invisible
+    -- despite doing everything right on its own end.
     for _, child in ipairs({ container:GetChildren() }) do
-        child:Hide()
+        if child ~= group.content then
+            child:Hide()
+        end
     end
 
     -- Hiding a parent doesn't change its children's own shown-state, only
