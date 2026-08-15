@@ -66,6 +66,11 @@ function ToggleMainFrame()
     toggleMainFrame()
     if debug then print("finish toggling main frame") end
 end
+
+SLASH_FLAMESDATABASE1 = "/fdb"
+SlashCmdList["FLAMESDATABASE"] = function()
+    ToggleMainFrame()
+end
 ------------------------------------------------------------
 -- MAIN UI FRAME
 ------------------------------------------------------------

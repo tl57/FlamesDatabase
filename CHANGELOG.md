@@ -4,6 +4,7 @@
 ### Added
 - Dungeon Quest dropdown filters: Faction and Dungeon
 - Dungeon Quest filter now hides options without quests for the selected faction
+- Slash Command support (/fdb)
 ### Changed
 - Dungeon Quest effort now Low, Medium and High
 - Dungeon Quest now shows Dungeon Level range
