@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.0
+### Added
+- Welcome Frame
+- Changelog Frame
+
 ## v0.1.4
 ### Added
 - Added Dungeon Info tab.
