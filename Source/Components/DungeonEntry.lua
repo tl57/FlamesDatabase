@@ -8,6 +8,8 @@ files (DungeonQuestData.lua) hold plain name/columns/rows tables, this just
 displays them.
 -----------------------------------------------------------------------------]]
 
+local AceGUI = LibStub("AceGUI-3.0")
+
 DungeonEntry = {}
 
 -- Row height for every dungeon's quest table (DataTable's default 20px is
@@ -20,6 +22,22 @@ local RowSize = 24
 -- DataTable:Build unchanged (see DataTable.lua).
 function DungeonEntry:AddRows(scroll, parent, dungeon)
     GeneralUI:AddCollapsibleSection(scroll, dungeon.name, function()
-        return DataTable:Build(parent, { columns = dungeon.columns, rows = dungeon.rows, rowHeight = RowSize })
+        -- Wrap the level line and the table in one List-layout group so
+        -- buildContent still returns (and AddCollapsibleSection still
+        -- releases) a single widget - AceGUI:Release cascades to a
+        -- container's children, so no extra cleanup is needed here.
+        local group = AceGUI:Create("SimpleGroup")
+        group:SetLayout("List")
+        group:SetFullWidth(true)
+
+        local levelLabel = AceGUI:Create("Label")
+        levelLabel:SetFullWidth(true)
+        levelLabel:SetFontObject(GameFontHighlight)
+        levelLabel:SetText(("Appropriate levels: %s-%s"):format(dungeon.minLvl, dungeon.maxLvl))
+        group:AddChild(levelLabel)
+
+        group:AddChild(DataTable:Build(parent, { columns = dungeon.columns, rows = dungeon.rows, rowHeight = RowSize }))
+
+        return group
     end)
 end

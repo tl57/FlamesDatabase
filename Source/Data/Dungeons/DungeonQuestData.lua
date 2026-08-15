@@ -55,7 +55,9 @@ local QuestColumns = {
 -- this file needs to reference an individual dungeon by name.
 DungeonQuestData = {
     {
-        name    = "Ragefire Chasm (13-18)",
+        name    = "Ragefire Chasm",
+        minLvl  = 13,
+        maxLvl  = 28,
         columns = QuestColumns,
         rows    = {
             {
@@ -133,7 +135,9 @@ DungeonQuestData = {
         },
     },
     {
-        name    = "The Deadmines (18-23)",
+        name    = "The Deadmines",
+        minLvl  = 18,
+        maxLvl  = 23,
         columns = QuestColumns,
         rows    = {
             {
@@ -223,7 +227,9 @@ DungeonQuestData = {
         },
     },
     {
-        name    = "Wailing Caverns (17-27)",
+        name    = "Wailing Caverns",
+        minLvl  = 17,
+        maxLvl  = 27,
         columns = QuestColumns,
         rows    = {
             {
@@ -248,7 +254,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "Smart Drinks",
@@ -313,7 +319,9 @@ DungeonQuestData = {
         },
     },
     {
-        name    = "Shadowfang Keep (22-30)",
+        name    = "Shadowfang Keep",
+        minLvl  = 22,
+        maxLvl  = 30,
         columns = QuestColumns,
         rows    = {
             {
@@ -326,7 +334,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "Deathstalkers in Shadowfang",
@@ -338,7 +346,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "Arugal Must Die",
@@ -350,7 +358,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "The Orb of Soran'ruk",
@@ -379,7 +387,9 @@ DungeonQuestData = {
         }
     },
     {
-        name    = "Blackfathom Deeps (24-32)",
+        name    = "Blackfathom Deeps",
+        minLvl  = 24,
+        maxLvl  = 32,
         columns = QuestColumns,
         rows    = {
             {
@@ -392,7 +402,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "In Search of Thaelrid",
@@ -428,7 +438,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "Twilight Falls",
@@ -440,7 +450,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "The Test of Righteousness",
@@ -541,7 +551,9 @@ DungeonQuestData = {
         }
     },
     {
-        name    = "The Stockade (22-30)",
+        name    = "The Stockade",
+        minLvl  = 22,
+        maxLvl  = 30,
         columns = QuestColumns,
         rows    = {
             {
@@ -554,7 +566,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "The Color of Blood",
@@ -566,7 +578,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "What Comes Around...",
@@ -578,7 +590,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "Crime and Punishment",
@@ -590,7 +602,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "The Stockade Riots",
@@ -619,7 +631,9 @@ DungeonQuestData = {
         }
     },
     {
-        name    = "Razorfen Kraul (30-40)",
+        name    = "Razorfen Kraul",
+        minLvl  = 30,
+        maxLvl  = 40,
         columns = QuestColumns,
         rows    = {
             {
@@ -692,7 +706,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "Going, Going, Guano!",
@@ -704,12 +718,14 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
         }
     },
     {
-        name    = "Gnomeregan (29-38)",
+        name    = "Gnomeregan",
+        minLvl  = 29,
+        maxLvl  = 38,
         columns = QuestColumns,
         rows    = {
             {
@@ -746,7 +762,7 @@ DungeonQuestData = {
                 Effort      = "Low",
                 Shareable   = "No",
                 Chain       = nil,
-                Note        = "",
+                Note        = nil,
             },
             {
                 Name        = "Data Rescue",
@@ -859,7 +875,9 @@ DungeonQuestData = {
         }
     },
     {
-        name    = "Scarlet Monastery (GY 26-35) (LIB 29-39) (ARM 32-42) (CAT 35-45)",
+        name    = "Scarlet Monastery",
+        minLvl  = 26,
+        maxLvl  = 45,
         columns = QuestColumns,
         rows    = {
             {
