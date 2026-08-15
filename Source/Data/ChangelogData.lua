@@ -4,6 +4,12 @@
 
 ChangelogData = {
     {
+        version = "0.3.1",
+        changes = {
+            { category = "Changed", text = "Removed unused tabs." },
+        },
+    },
+    {
         version = "0.3.0",
         changes = {
             { category = "Added", text = "Dungeon Quest filters." },

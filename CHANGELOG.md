@@ -1,6 +1,10 @@
 # Changelog
 
 ## v0.3.0
+### Changed
+- Removed extra unused tabs
+
+## v0.3.0
 ### Added
 - Dungeon Quest dropdown filters: Faction and Dungeon
 - Dungeon Quest filter now hides options without quests for the selected faction
