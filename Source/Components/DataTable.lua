@@ -29,7 +29,7 @@ stay untinted. At most one of the two applies per column in practice.
 
 `column.valueBackgrounds` is the same value-lookup idea as `valueColors`, but
 fills the cell's own background texture instead of its text (e.g.
-{ Minimum = {0,1,0}, Medium = {1,1,0}, Maximum = {1,0,0} }, each {r,g,b[,a]} -
+{ Low = {0,1,0}, Medium = {1,1,0}, High = {1,0,0} }, each {r,g,b[,a]} -
 alpha defaults to 0.35). A value with no entry stays unfilled.
 
 If a row has an `ItemLinkId` (an itemID, not part of `columns`), the Name
@@ -401,7 +401,7 @@ local function BuildRow(container, row, columns, yOffset, skill)
 
             -- col.valueBackgrounds fills the cell's own background texture
             -- (rather than tinting its text) based on this cell's value -
-            -- e.g. { Minimum = {0,1,0}, Medium = {1,1,0}, Maximum = {1,0,0} }.
+            -- e.g. { Low = {0,1,0}, Medium = {1,1,0}, High = {1,0,0} }.
             -- AcquireCell hides cell.bg by default, so a value with no entry
             -- just stays unfilled.
             local bgColor = value ~= nil and col.valueBackgrounds and col.valueBackgrounds[value]

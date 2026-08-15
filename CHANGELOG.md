@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.1
+### Changed
+- Quest effort now Low, Medium and High
+
 ## v0.2.0
 ### Added
 - Welcome Frame

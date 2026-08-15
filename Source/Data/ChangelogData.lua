@@ -4,6 +4,19 @@
 
 ChangelogData = {
     {
+        version = "0.2.1",
+        changes = {
+            { category = "Changed", text = "Quest Effort is now Low, Medium or High." },
+        },
+    },
+    {
+        version = "0.2.0",
+        changes = {
+            { category = "Added", text = "Welcome window." },
+            { category = "Added", text = "Changelog window." },
+        },
+    },
+    {
         version = "0.1.4",
         changes = {
             { category = "Added", text = "Added Dungeon Info tab." },
