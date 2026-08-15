@@ -98,20 +98,14 @@ function DungeonEntry:Build(scroll, parent, dungeons)
         names[i] = dungeon.name
     end
 
-    -- Ordered view of QuestFilters (DungeonQuestData.lua) - a plain
-    -- key => {name, show} table has no defined pairs() order, so this keeps
-    -- the Filter by dropdown's entries in a stable order across rebuilds.
-    local filterKeys = {}
-    for key in pairs(QuestFilters) do
-        filterKeys[#filterKeys + 1] = key
-    end
-    table.sort(filterKeys)
-
+    -- QuestFilters (DungeonQuestData.lua) is an ordered array, so this
+    -- mirrors it 1:1 - the "Filter by" dropdown shows entries in the order
+    -- they're authored there.
     local filterNames = {}
     local defaultFilterIndex = 1
-    for i, key in ipairs(filterKeys) do
-        filterNames[i] = QuestFilters[key].name
-        if key == "All" then
+    for i, filter in ipairs(QuestFilters) do
+        filterNames[i] = filter.name
+        if filter.name == "All" then
             defaultFilterIndex = i
         end
     end
@@ -133,7 +127,7 @@ function DungeonEntry:Build(scroll, parent, dungeons)
             AceGUI:Release(contentWidget)
         end
         local dungeon = dungeons[selectedDungeonIndex]
-        local filter = QuestFilters[filterKeys[selectedFilterIndex]]
+        local filter = QuestFilters[selectedFilterIndex]
         contentWidget = BuildDungeonContent(parent, dungeon, filter)
         scroll:AddChild(contentWidget)
     end
@@ -158,7 +152,7 @@ function DungeonEntry:Build(scroll, parent, dungeons)
     -- dungeon that still has rows instead of leaving an emptied-out
     -- selection in place.
     local function UpdateDungeonAvailability()
-        local filter = QuestFilters[filterKeys[selectedFilterIndex]]
+        local filter = QuestFilters[selectedFilterIndex]
         local fallbackIndex
         for i, dungeon in ipairs(dungeons) do
             local empty = #FilterRows(dungeon.rows, filter) == 0

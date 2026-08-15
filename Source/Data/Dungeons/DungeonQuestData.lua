@@ -53,8 +53,11 @@ local QuestColumns = {
     { id = "Note",  title = "Note",  width = 450 },
 }
 
+-- An array (not a name => value table) so the authored order below is what
+-- DungeonEntry.lua's "Filter by" dropdown shows - ipairs() has a defined
+-- order, plain pairs() over string keys does not.
 QuestFilters = {
-    All = {
+    {
         name = "All",
         show = {
             "Alliance",
@@ -65,7 +68,7 @@ QuestFilters = {
             "Warlock",
         }
     },
-    Alliance = {
+    {
         name = "Alliance",
         show = {
             "Alliance",
@@ -75,7 +78,7 @@ QuestFilters = {
             "Warlock",
         }
     },
-    Horde = {
+    {
         name = "Horde",
         show = {
             "Horde",
@@ -84,12 +87,30 @@ QuestFilters = {
             "Warlock",
         }
     },
-    Class = {
+    {
         name = "Class Only",
         show = {
             "Mage",
             "Paladin",
             "Warlock",
+        }
+    },
+    {
+        name = "Mage",
+        show = {
+            "Mage"
+        }
+    },
+    {
+        name = "Paladin",
+        show = {
+            "Paladin"
+        }
+    },
+    {
+        name = "Warlock",
+        show = {
+            "Warlock"
         }
     },
 }
