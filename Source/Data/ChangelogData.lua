@@ -4,8 +4,11 @@
 
 ChangelogData = {
     {
-        version = "0.2.1",
+        version = "0.3.0",
         changes = {
+            { category = "Added", text = "Dungeon Quest filters." },
+            { category = "Changed", text = "Quest Effort is now Low, Medium or High." },
+            { category = "Changed", text = "Dungeon Quest now shows Dungeon Level range." },
             { category = "Changed", text = "Quest Effort is now Low, Medium or High." },
         },
     },

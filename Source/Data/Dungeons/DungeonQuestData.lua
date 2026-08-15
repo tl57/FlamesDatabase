@@ -53,6 +53,47 @@ local QuestColumns = {
     { id = "Note",  title = "Note",  width = 450 },
 }
 
+QuestFilters = {
+    All = {
+        name = "All",
+        show = {
+            "Alliance",
+            "Horde",
+            "Both",
+            "Mage",
+            "Paladin",
+            "Warlock",
+        }
+    },
+    Alliance = {
+        name = "Alliance",
+        show = {
+            "Alliance",
+            "Both",
+            "Mage",
+            "Paladin",
+            "Warlock",
+        }
+    },
+    Horde = {
+        name = "Horde",
+        show = {
+            "Horde",
+            "Both",
+            "Mage",
+            "Warlock",
+        }
+    },
+    Class = {
+        name = "Class Only",
+        show = {
+            "Mage",
+            "Paladin",
+            "Warlock",
+        }
+    },
+}
+
 -- Dungeons shown on the "Dungeon Quests" page, in display order. Each entry
 -- is defined inline (not a separate named global) since nothing outside
 -- this file needs to reference an individual dungeon by name.

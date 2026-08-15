@@ -1,8 +1,12 @@
 # Changelog
 
-## v0.2.1
+## v0.3.0
+### Added
+- Dungeon Quest dropdown filter
 ### Changed
-- Quest effort now Low, Medium and High
+- Dungeon Quest effort now Low, Medium and High
+- Dungeon Quest now shows Dungeon Level range
+- Change collapsible dungeon components into dropdowns.
 
 ## v0.2.0
 ### Added
