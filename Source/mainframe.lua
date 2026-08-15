@@ -59,8 +59,6 @@ function toggleMainFrame()
 			tabs = {
 				{ value = "Professions", text = "Professions" },
 				{ value = "Dungeons",    text = "Dungeons" },
-				{ value = "spells",      text = "Spells" },
-				{ value = "items",       text = "Items" },
 			},
 		})
 		tabs:AddPage("Professions", TabProfessions.Build)
