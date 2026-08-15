@@ -20,6 +20,9 @@ local QuestColumns = {
         valueColors = {
             Horde    = { 0.90, 0.20, 0.20 },
             Alliance = { 0.30, 0.55, 0.95 },
+            Paladin  = { 0.96, 0.55, 0.73 },
+            Warlock  = { 0.58, 0.51, 0.79 },
+            Mage     = { 0.41, 0.80, 0.94 },
             -- "Both" (and anything else unlisted) stays untinted.
         },
     },
