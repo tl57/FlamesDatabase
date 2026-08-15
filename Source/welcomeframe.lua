@@ -54,7 +54,7 @@ function showWelcomeFrame()
 		"Mining skill levels, zones and item links.",
 		"Herbalism skill levels, zones and item links.",
 		"Dungeon information, including NPC information, quest information and links.",
-		"Filter Dungeon Quest information."
+		"Filter visible Dungeon Quest information."
 	}
 	for _, text in ipairs(placeholderFeatures) do
 		local line = AceGUI:Create("Label") ---@type AceGUILabel

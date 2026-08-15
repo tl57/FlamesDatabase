@@ -151,10 +151,33 @@ function DungeonEntry:Build(scroll, parent, dungeons)
         RebuildContent()
     end)
 
+    -- Grey out (SetItemDisabled - see AceGUIWidget-DropDown.lua, it also
+    -- blocks the item's own OnClick, so a disabled entry can't be picked)
+    -- any dungeon with 0 rows under the currently-selected filter. If the
+    -- dungeon currently selected is one of them, falls back to the first
+    -- dungeon that still has rows instead of leaving an emptied-out
+    -- selection in place.
+    local function UpdateDungeonAvailability()
+        local filter = QuestFilters[filterKeys[selectedFilterIndex]]
+        local fallbackIndex
+        for i, dungeon in ipairs(dungeons) do
+            local empty = #FilterRows(dungeon.rows, filter) == 0
+            dungeonDropdown:SetItemDisabled(i, empty)
+            if not empty and not fallbackIndex then
+                fallbackIndex = i
+            end
+        end
+        if fallbackIndex and #FilterRows(dungeons[selectedDungeonIndex].rows, filter) == 0 then
+            selectedDungeonIndex = fallbackIndex
+            dungeonDropdown:SetValue(selectedDungeonIndex)
+        end
+    end
+
     local FILTER_DROPDOWN_WIDTH = DROPDOWN_WIDTH / 2
     local filterLabel, filterDropdown, filterLabelWidth = BuildLabeledDropdown("Filter by:", filterNames, FILTER_DROPDOWN_WIDTH)
     filterDropdown:SetCallback("OnValueChanged", function(_, _, index)
         selectedFilterIndex = index
+        UpdateDungeonAvailability()
         RebuildContent()
     end)
 
@@ -185,5 +208,6 @@ function DungeonEntry:Build(scroll, parent, dungeons)
 
     dungeonDropdown:SetValue(selectedDungeonIndex)
     filterDropdown:SetValue(selectedFilterIndex)
+    UpdateDungeonAvailability()
     RebuildContent()
 end
