@@ -176,7 +176,7 @@ DeadminesQuests = {
             Effort      = "High",
             Shareable   = "Yes",
             Chain       = "Yes",
-            Note        = "Requires the 'Defias Brotherhood' pre-quest (long chain. Follow up after the Escort).",
+            Note        = "Requires completing [The Escort] during the 'Defias Brotherhood' (long) chain-quest",
         },
         {
             Name        = "Red Silk Bandanas",
@@ -188,7 +188,7 @@ DeadminesQuests = {
             Effort      = "High",
             Shareable   = "Yes",
             Chain       = "Yes",
-            Note        = "Requires the 'Defias Brotherhood' pre-quest (long chain. Follow up after the Escort).",
+            Note        = "Requires completing [The Escort] during the 'Defias Brotherhood' (long) chain-quest",
         },
         {
             Name        = "The Unsent Letter",
