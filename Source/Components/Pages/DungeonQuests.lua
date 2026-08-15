@@ -8,9 +8,7 @@ function DungeonQuests:Build(parent)
     local scroll = AceGUI:Create("ScrollFrame")
     scroll:SetLayout("List")
 
-    for _, dungeon in ipairs(DungeonQuestData) do
-        DungeonEntry:AddRows(scroll, parent, dungeon)
-    end
+    DungeonEntry:Build(scroll, parent, DungeonQuestData)
 
     return scroll
 end
