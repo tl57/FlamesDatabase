@@ -52,12 +52,19 @@ local function BuildInfoContent(dungeon)
     local group = AceGUI:Create("SimpleGroup")
     group:SetLayout("List")
     group:SetWidth(INFO_CONTENT_WIDTH)
-    -- Rows are pooled raw FontStrings, not real AceGUI children of `group`
-    -- (see AddInfoRow) - so group.children is always empty, and without
-    -- this, AceGUI's own auto-height logic would recompute group's height
-    -- from that empty list and reset it to 0 (see DataTable.lua's
-    -- identical use of SetAutoAdjustHeight(false), for the same reason).
+    -- The rows below are pooled raw FontStrings, not real AceGUI children of
+    -- `group` (see AddInfoRow) - so besides the spacer, group.children stays
+    -- empty, and without this, AceGUI's own auto-height logic would
+    -- recompute group's height from that near-empty list and reset it to 0
+    -- (see DataTable.lua's identical use of SetAutoAdjustHeight(false), for
+    -- the same reason).
     group:SetAutoAdjustHeight(false)
+
+    -- List still positions this one real child at content's TOPLEFT despite
+    -- SetAutoAdjustHeight(false) above - that only skips the final
+    -- self:SetHeight call, which group:SetHeight(y) below overrides anyway.
+    local spacer = GeneralUI:BuildSpacer()
+    group:AddChild(spacer)
 
     local content = group.content
     -- Defensive: this exact frame may have previously been recycled by
@@ -69,7 +76,9 @@ local function BuildInfoContent(dungeon)
     content:Show()
     content.rowsUsed = 0
 
-    local y = 0
+    -- Rows are positioned relative to `content`'s top, so the first one
+    -- starts below the spacer rather than at y=0.
+    local y = spacer.frame.height
     y = AddInfoRow(content, ("Zone ID: %s"):format(dungeon.zoneid or "?"), y)
     y = AddInfoRow(content, ("Mob Levels: %s-%s"):format(dungeon.minMobLevel or "?", dungeon.maxMobLevel or "?"), y)
 
@@ -99,17 +108,76 @@ local function BuildInfoContent(dungeon)
     return group
 end
 
--- Build and return the content widget for the "Dungeon Info" page.
--- Returns the AceGUI widget (so the page builder can return it directly).
+local DROPDOWN_WIDTH = 250
+
+-- Build and return the content widget for the "Dungeon Info" page: a
+-- dungeon-picker Dropdown (see DungeonEntry.lua's identical pattern)
+-- followed by the selected dungeon's info, rebuilt in place whenever the
+-- selection changes. Returns the AceGUI widget (so the page builder can
+-- return it directly).
 function DungeonInfo:Build(parent)
     local scroll = AceGUI:Create("ScrollFrame")
     scroll:SetLayout("List")
 
-    for _, dungeon in ipairs(Dungeons) do
-        GeneralUI:AddCollapsibleSection(scroll, dungeon.name, function()
-            return BuildInfoContent(dungeon)
-        end)
+    local names = {}
+    for i, dungeon in ipairs(Dungeons) do
+        names[i] = dungeon.name
     end
+
+    -- Replaced in place (see SelectDungeon) whenever the dropdown's
+    -- selected dungeon changes, rather than rebuilding the whole page.
+    local contentWidget
+
+    local function SelectDungeon(index)
+        if contentWidget then
+            for idx, child in ipairs(scroll.children) do
+                if child == contentWidget then
+                    table.remove(scroll.children, idx)
+                    break
+                end
+            end
+            AceGUI:Release(contentWidget)
+        end
+        contentWidget = BuildInfoContent(Dungeons[index])
+        scroll:AddChild(contentWidget)
+    end
+
+    -- A Flow-layout row (mirrors GatheringPage.lua's BuildExpansionRadioGroup)
+    -- rather than Dropdown's own SetLabel, which stacks the label above the
+    -- control instead of beside it.
+    local label = AceGUI:Create("Label")
+    label:SetFontObject(GameFontHighlightLarge)
+    label:SetText("Dungeon:")
+    local labelWidth = math.ceil(label.label:GetStringWidth()) + 8
+    label:SetWidth(labelWidth)
+
+    local dropdown = AceGUI:Create("Dropdown")
+    dropdown:SetWidth(DROPDOWN_WIDTH)
+    dropdown:SetList(names)
+    -- The Dropdown widget's selected-text FontString (self.text in
+    -- AceGUIWidget-DropDown.lua) inherits UIDropDownMenuTemplate's default
+    -- CENTER justify; left-align it to match every other label in this addon.
+    dropdown.text:SetJustifyH("LEFT")
+    dropdown:SetCallback("OnValueChanged", function(_, _, index)
+        SelectDungeon(index)
+    end)
+
+    local row = AceGUI:Create("SimpleGroup")
+    row:SetLayout("Flow")
+    local totalWidth = labelWidth + DROPDOWN_WIDTH
+    row:SetWidth(totalWidth)
+    -- See BuildExpansionRadioGroup's identical line: Flow reads
+    -- content.width directly, which SetWidth only updates asynchronously
+    -- via the frame's OnSizeChanged - without this a group recycled from
+    -- AceGUI's shared SimpleGroup pool can carry over a stale, narrower
+    -- width and wrap the dropdown onto its own row.
+    row.content.width = totalWidth
+    row:AddChild(label)
+    row:AddChild(dropdown)
+    scroll:AddChild(row)
+
+    dropdown:SetValue(1)
+    SelectDungeon(1)
 
     return scroll
 end
