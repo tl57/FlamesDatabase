@@ -17,6 +17,7 @@ Localization/strings_en.lua
 Source/Tools/Functions/General.lua
 Source/Tools/Functions/Professions.lua
 Source/Tools/Functions/GeneralUI.lua
+Source/Tools/Functions/AddOnAccess.lua
 Source/Components/DungeonEntry.lua
 Source/Data/ChangelogData.lua
 Source/Data/Professions/MiningData.lua
