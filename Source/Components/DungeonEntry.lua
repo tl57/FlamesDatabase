@@ -10,11 +10,16 @@ displays them.
 
 DungeonEntry = {}
 
+-- Row height for every dungeon's quest table (DataTable's default 20px is
+-- single-line only; taller here so the NPC column's word-wrap gets a 2nd
+-- line without overlapping the row border below).
+local RowSize = 24
+
 -- Add a collapsible section for `dungeon` to `scroll` (see
 -- GeneralUI:AddCollapsibleSection). `parent` is passed through to
 -- DataTable:Build unchanged (see DataTable.lua).
 function DungeonEntry:AddRows(scroll, parent, dungeon)
     GeneralUI:AddCollapsibleSection(scroll, dungeon.name, function()
-        return DataTable:Build(parent, { columns = dungeon.columns, rows = dungeon.rows })
+        return DataTable:Build(parent, { columns = dungeon.columns, rows = dungeon.rows, rowHeight = RowSize })
     end)
 end

@@ -21,6 +21,10 @@ Rows are keyed by column id. Values that are nil render as empty cells.
 Consecutive columns sharing the same `group` value are merged into one header
 cell; other columns show column.title if provided, else column.name.
 
+`options.rowHeight` overrides the default row height (ROW_HEIGHT below) for
+every row in this table - useful when a column's word-wrapped text needs a
+taller row so its second line doesn't overlap the row border below.
+
 Non-Name columns can tint their text: `column.background` (a key into
 CELL_BACKGROUND_COLORS) gives every cell in the column the same fixed color;
 `column.valueColors` (e.g. { Horde = {0.9,0.2,0.2}, Alliance = {0.3,0.55,0.95} })
@@ -332,12 +336,12 @@ end
 
 -- Build one row's cells directly under `container`, anchored at a fixed
 -- vertical offset. The table is sized to fit all of them (the page around it
--- scrolls).
-local function BuildRow(container, row, columns, yOffset, skill)
+-- scrolls). `rowHeight` overrides the default ROW_HEIGHT (see DataTable:Build).
+local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
     local frame = AcquireRow(container, container)
     frame:SetPoint("TOPLEFT", container, "TOPLEFT", 0, yOffset)
     frame:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, yOffset)
-    frame:SetHeight(ROW_HEIGHT)
+    frame:SetHeight(rowHeight)
 
     -- The first (id/name) column borrows the skill-diff color of the first
     -- other column that has a number in this row, so its color reflects this
@@ -359,10 +363,10 @@ local function BuildRow(container, row, columns, yOffset, skill)
     for i, col in ipairs(columns) do
         local cell = AcquireCell(container, frame)
         cell:SetPoint("TOPLEFT", frame, "TOPLEFT", col._x, 0)
-        LayoutCell(cell, col.width, ROW_HEIGHT)
+        LayoutCell(cell, col.width, rowHeight)
 
         local value = row[col.id]
-        cell.text:SetJustifyH("LEFT")
+        cell.text:SetJustifyH(col.justify or "LEFT")
 
         if i == 1 then
             -- Name column: always display the row's own Name string (never
@@ -443,7 +447,8 @@ function DataTable:Build(parent, options, selectedExpansion)
     local totalWidth = x
 
     local width = options.width or totalWidth
-    local height = HEADER_HEIGHT + (#rows * ROW_HEIGHT)
+    local rowHeight = options.rowHeight or ROW_HEIGHT
+    local height = HEADER_HEIGHT + (#rows * rowHeight)
 
     -- Container frame hosting header + rows. A dedicated widget type (see
     -- AceGUIWidget-FlamesDataTable.lua) - AceGUI pools widgets separately
@@ -495,7 +500,7 @@ function DataTable:Build(parent, options, selectedExpansion)
         local col = columns[i]
         local cellWidth = col.width
         local label = col.title or col.name or col.id
-        local justify = "LEFT"
+        local justify = col.justify or "LEFT"
 
         if col.group then
             local last = i
@@ -526,7 +531,7 @@ function DataTable:Build(parent, options, selectedExpansion)
     -- Rows, stacked directly below the header. No inner scrollbar: the page
     -- around this table already scrolls, so the table is just as tall as its data.
     for idx, row in ipairs(rows) do
-        BuildRow(container, row, columns, -(HEADER_HEIGHT + (idx - 1) * ROW_HEIGHT), skill)
+        BuildRow(container, row, columns, -(HEADER_HEIGHT + (idx - 1) * rowHeight), skill, rowHeight)
     end
 
     -- Hide any pooled rows/cells left over from a build with more rows or
