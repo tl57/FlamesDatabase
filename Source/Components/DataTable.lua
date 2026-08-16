@@ -49,7 +49,13 @@ level field. ItemLinkId and QuestLinkId are mutually exclusive per row.
 When `selectedExpansion` is given (one of Functions_General:GetExpansionLevels()),
 only columns with no `exp` or with `exp == selectedExpansion` are included -
 `exp` otherwise has no visual effect of its own (no separate header row for
-it), it's purely a filtering key.
+it), it's purely a filtering key. Rows are filtered the same way by their own
+`Introduced` field (also not part of `columns`): a row is included only if it
+has no `Introduced`, or `Introduced <= selectedExpansion` - e.g. a herb with
+`Introduced = LE_EXPANSION_BURNING_CRUSADE` is left out entirely while Classic
+is selected, since LE_EXPANSION_* values increase with each expansion and this
+is a plain `<=` comparison, this keeps working unmodified as later expansions
+are added - nothing here needs to change.
 
 Row/header frames are pooled per container frame and reused across rebuilds
 (see AcquireRow/AcquireCell) rather than always creating new ones - a given
@@ -421,20 +427,31 @@ end
 -- `selectedExpansion` is given, only columns with no `exp` (e.g. the id/name
 -- column) or with `exp == selectedExpansion` are included - everything else
 -- (and any row data only reachable through those columns) is left out
--- entirely, not just hidden.
+-- entirely, not just hidden. Rows with a numeric `Introduced` greater than
+-- selectedExpansion are dropped the same way (rows with no `Introduced` are
+-- always kept) - a plain `<=` comparison against LE_EXPANSION_* values, so it
+-- needs no changes as later expansions are added.
 function DataTable:Build(parent, options, selectedExpansion)
     options = options or {}
     local columns = options.columns or {}
     local rows = options.rows or {}
 
     if selectedExpansion then
-        local filtered = {}
+        local filteredColumns = {}
         for _, col in ipairs(columns) do
             if not col.exp or col.exp == selectedExpansion then
-                filtered[#filtered + 1] = col
+                filteredColumns[#filteredColumns + 1] = col
             end
         end
-        columns = filtered
+        columns = filteredColumns
+
+        local filteredRows = {}
+        for _, row in ipairs(rows) do
+            if not row.Introduced or row.Introduced <= selectedExpansion then
+                filteredRows[#filteredRows + 1] = row
+            end
+        end
+        rows = filteredRows
     end
 
     -- Precompute each column's left x-offset.
