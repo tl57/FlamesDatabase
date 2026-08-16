@@ -2,6 +2,10 @@
 
 ## v0.3.1
 ### Changed
+- Expansion Data is now a dropdown
+
+## v0.3.1
+### Changed
 - Removed extra unused tabs
 
 ## v0.3.0

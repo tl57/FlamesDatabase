@@ -15,15 +15,19 @@ local profession = nil
 
 GatheringPage = {}
 
--- A row of mutually-exclusive radio buttons, one per expansion this addon
--- knows about (Functions_General:GetExpansionLevels), with the one matching
--- the realm's current expansion pre-selected. AceGUI has no dedicated
--- RadioGroup widget, so this is built from CheckBox widgets in "radio" mode
--- with manual exclusivity handling. `onSelect(level)` fires whenever the user
--- picks a different button (not for the initial pre-selection - the caller
--- already gets that back as the second return value).
+-- A label followed by a dropdown, on the same row, offering one option per
+-- expansion this addon supports (capped by
+-- Functions_General:GetHighestSupportedExpansion), with the one matching the
+-- realm's current expansion pre-selected. Uses AceGUI's own Dropdown widget
+-- instead of hand-built radio buttons, so there's no per-option width
+-- budgeting or exclusivity handling to get wrong - the row always has
+-- exactly two fixed-width children (the label, the dropdown) no matter how
+-- many expansions end up in the dropdown's list. `onSelect(level)` fires
+-- whenever the user picks a different option (not for the initial
+-- pre-selection - the caller already gets that back as the second return
+-- value).
 -- Returns the group widget and the initially selected level.
-local function BuildExpansionRadioGroup(onSelect)
+local function BuildExpansionDropdown(onSelect)
     local currentLevel = Functions_General:GetServerExpansionLevel()
 
     -- Cap the offered expansions at what this addon's own .toc declares
@@ -32,99 +36,63 @@ local function BuildExpansionRadioGroup(onSelect)
     -- expansion, if the client has no way to read that.
     local highestSupported = Functions_General:GetHighestSupportedExpansion(addonName) or LE_EXPANSION_CLASSIC
     local levels = {}
+    local names = {}
     for _, level in ipairs(Functions_General:GetExpansionLevels()) do
         if level <= highestSupported then
             levels[#levels + 1] = level
+            names[level] = Functions_General:GetExpansionName(level)
         end
     end
 
-    local selected = 1
-    for i, level in ipairs(levels) do
+    local selected = levels[1]
+    for _, level in ipairs(levels) do
         if level == currentLevel then
-            selected = i
+            selected = level
             break
         end
     end
 
-    -- Sized to its own known content (label width + button count * button
-    -- width) rather than SetFullWidth(true): at this point `scroll` (this
-    -- group's eventual parent) hasn't been given its real width yet - that
-    -- only happens later, when the outer tab group's Fill layout runs after
-    -- Mining/Herbalism's Build call already returns - so the "Flow" layout
-    -- below would size itself off whatever stale width this recycled
-    -- ScrollFrame widget happened to have from its last, unrelated use,
-    -- wrapping the buttons onto multiple rows whenever that stale width was
-    -- too narrow.
-    local BUTTON_WIDTH = 90
-    local group = AceGUI:Create("SimpleGroup")
-    group:SetLayout("Flow")
-    group:SetAutoAdjustHeight(false)
-    group:SetHeight(24)
+    -- No dropdown:SetLabel(...) here - that renders the label above the
+    -- dropdown instead of beside it. Leaving it unset keeps the dropdown at
+    -- its default 26px-tall, no-label layout so it can sit inline with its
+    -- own separate Label widget below instead.
+    local DROPDOWN_WIDTH = 160
+    local dropdown = AceGUI:Create("Dropdown")
+    dropdown:SetWidth(DROPDOWN_WIDTH)
+    -- AceGUI's Dropdown widget has no exported method for this - its
+    -- UIDropDownMenuTemplate-based text is center-justified by default, so
+    -- the selected-value text is reached directly via the widget's own
+    -- `.text` FontString field.
+    dropdown.text:SetJustifyH("LEFT")
+    -- `levels` is already ascending (GetExpansionLevels()'s own order) -
+    -- passed as the explicit order so SetList doesn't fall back to sorting
+    -- the LE_EXPANSION_* values itself.
+    dropdown:SetList(names, levels)
+    dropdown:SetValue(selected)
+    dropdown:SetCallback("OnValueChanged", function(_, _, level)
+        onSelect(level)
+    end)
 
-    -- AceGUI has no dedicated RadioGroup widget with a built-in label slot,
-    -- so this Label is just the first child in the Flow row, rendering to
-    -- the left of the buttons within the same group. Font matches the
-    -- CheckBox labels' GameFontHighlight (Label defaults to the smaller
-    -- GameFontHighlightSmall), and its width is the text's actual measured
-    -- width plus a little padding rather than a guessed fixed number -
-    -- guessing came up a few pixels short and wrapped the second button
-    -- onto its own row.
     local label = AceGUI:Create("Label")
     label:SetFontObject(GameFontHighlightLarge)
     label:SetText("Current Expansion Data:")
     local labelWidth = math.ceil(label.label:GetStringWidth()) + 8
     label:SetWidth(labelWidth)
-    -- Flow layout vertically aligns row children using each child's own
-    -- alignoffset (default: half its frame height). CheckBox always ends up
-    -- 24px tall (its OnAcquire calls SetDescription(nil), whose else-branch
-    -- is SetHeight(24)), but Label sizes itself off its FontString's actual
-    -- text height, which is shorter - mismatched alignoffsets, so the label
-    -- text sat higher than the button labels. Matching CheckBox's height
-    -- here (after the width/font/text calls above, so nothing recomputes it
-    -- afterward) makes both default to the same alignoffset.
-    label:SetHeight(24)
 
-    local totalWidth = labelWidth + BUTTON_WIDTH * #levels
+    local totalWidth = labelWidth + DROPDOWN_WIDTH
+    local group = AceGUI:Create("SimpleGroup")
+    group:SetLayout("Flow")
     group:SetWidth(totalWidth)
-    -- SimpleGroup's Flow layout reads content.width (see AceGUI-3.0.lua's
-    -- OnWidthSet), which SetWidth only updates indirectly via the frame's
-    -- OnSizeChanged script - that fires asynchronously, not before the
-    -- DoLayout call inside AddChild below runs. On a `group` recycled from
-    -- AceGUI's widget pool (shared across every addon's SimpleGroups), that
-    -- left content.width holding whatever this instance's content was last
-    -- sized to, which could be narrower than our real total - intermittently
-    -- wrapping the last button onto a second row that ends up clipped from
-    -- view. Setting it directly here (exactly what OnWidthSet would
-    -- eventually do) makes Flow's width check see our real total right away.
+    -- SimpleGroup's Flow layout reads content.width directly, which SetWidth
+    -- only updates asynchronously via the frame's OnSizeChanged - without
+    -- this a group recycled from AceGUI's shared SimpleGroup pool can carry
+    -- over a stale, narrower width and wrap the dropdown onto its own row
+    -- (see DungeonInfo.lua/DungeonEntry.lua's identical line).
     group.content.width = totalWidth
     group:AddChild(label)
+    group:AddChild(dropdown)
 
-    local buttons = {}
-    for i, level in ipairs(levels) do
-        local button = AceGUI:Create("CheckBox")
-        button:SetType("radio")
-        button:SetLabel(Functions_General:GetExpansionName(level))
-        button:SetWidth(BUTTON_WIDTH)
-        button:SetValue(i == selected)
-        button:SetCallback("OnValueChanged", function(widget, _, checked)
-            if checked then
-                for j, other in ipairs(buttons) do
-                    if j ~= i then
-                        other:SetValue(false)
-                    end
-                end
-                onSelect(level)
-            else
-                -- Radio buttons shouldn't be deselectable by clicking the
-                -- already-selected one - keep exactly one checked at all times.
-                widget:SetValue(true)
-            end
-        end)
-        buttons[i] = button
-        group:AddChild(button)
-    end
-
-    return group, levels[selected]
+    return group, selected
 end
 
 -- A Label showing `text`, with tooltip+click wired up like DataTable.lua's
@@ -372,8 +340,8 @@ function GatheringPage:AddHeader(scroll, parent, profession, data, recommendatio
         scroll:AddChild(tableWidget, trailingSpacer)
     end
 
-    local radioGroup, initialExpansion = BuildExpansionRadioGroup(RebuildTable)
-    scroll:AddChild(radioGroup)
+    local expansionDropdown, initialExpansion = BuildExpansionDropdown(RebuildTable)
+    scroll:AddChild(expansionDropdown)
 
     scroll:AddChild(GeneralUI:BuildSpacer())
 

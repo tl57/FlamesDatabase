@@ -4,6 +4,12 @@
 
 ChangelogData = {
     {
+        version = "0.3.2",
+        changes = {
+            { category = "Changed", text = "Expansion Data is now a dropdown." },
+        },
+    },
+    {
         version = "0.3.1",
         changes = {
             { category = "Changed", text = "Removed unused tabs." },
