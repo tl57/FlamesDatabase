@@ -12,17 +12,22 @@ local options = {
   },
 }
 
-LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, options)
-local _, fdatabase_settings_category_id = LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addonName, addonName, nil)
+local fdatabase_settings_category_id
+
+-- register the Blizzard options panel entry
+-- (deferred until PLAYER_LOGIN; calling AddToBlizOptions this early during addon load
+-- can hit the Settings API before it's fully initialized)
+function InitializeOptions()
+  Functions_Ace:RegisterOptionsTable(addonName, options)
+  local _, categoryID = Functions_Ace:AddToBlizOptions(addonName, addonName, nil)
+  fdatabase_settings_category_id = categoryID
+end
 
 -- call options
 function ShowOptions()
   if debug then print("opening options") end
-	if Settings and Settings.OpenToCategory and fdatabase_settings_category_id then
-		local ok = pcall(Settings.OpenToCategory, fdatabase_settings_category_id)
-		if ok then
-			return
-		end
+	if Functions_Ace:OpenToCategory(fdatabase_settings_category_id) then
+		return
 	end
-	LibStub("AceConfigDialog-3.0"):Open(addonName)
+	Functions_Ace:OpenStandalone(addonName)
 end

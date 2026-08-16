@@ -57,6 +57,7 @@ function OnEvent(self, event, ...)
     if event == "PLAYER_LOGIN" then
         Initialize() -- Call the init function here
         InitMinimapButton() -- Initialize the minimap button
+        InitializeOptions() -- Register the Blizzard options panel entry
         if debug then print("debugging") end
     end
 end
