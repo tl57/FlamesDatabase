@@ -75,8 +75,8 @@ end
 ------------------------------------------------------------
 -- MAIN UI FRAME
 ------------------------------------------------------------
-print("creating event")
+if debug then print("creating event") end
 local invis_frame = CreateFrame("Frame")
 invis_frame:RegisterEvent("PLAYER_LOGIN")
 invis_frame:SetScript("OnEvent", OnEvent)
-print("registered event")
+if debug then print("registered event") end
