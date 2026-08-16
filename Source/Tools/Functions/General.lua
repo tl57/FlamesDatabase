@@ -28,6 +28,20 @@ function Functions_General:GetExpansionLevels()
     }
 end
 
+-- The highest expansion this addon is built for, based on the ## Interface
+-- directive in its own .toc file (game-version compatibility) - not what
+-- content/data exists for. Returns nil if the client has no way to read it.
+function Functions_General:GetHighestSupportedExpansion(addonName)
+    local getInterfaceVersion = GetAddOnInterfaceVersion or (C_AddOns and C_AddOns.GetAddOnInterfaceVersion)
+    local interfaceVersion = getInterfaceVersion and getInterfaceVersion(addonName)
+    if not interfaceVersion then
+        return nil
+    end
+    -- Interface numbers are <expansion major><minor><patch>, e.g. 11509 = Classic Era,
+    -- 40402 = Cataclysm. Expansion major 1 = LE_EXPANSION_CLASSIC (0), hence -1.
+    return math.floor(interfaceVersion / 10000) - 1
+end
+
 local EXPANSION_NAMES = {
     [LE_EXPANSION_CLASSIC]                = "Classic",
     [LE_EXPANSION_BURNING_CRUSADE]        = "TBC",

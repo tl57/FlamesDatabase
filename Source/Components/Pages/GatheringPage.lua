@@ -10,6 +10,7 @@ part, then keep adding profession-specific widgets (e.g. a "Recommended gear"
 section) before returning the scroll.
 -------------------------------------------------------------------------------]]
 local AceGUI = LibStub("AceGUI-3.0")
+local addonName = ...
 local profession = nil
 
 GatheringPage = {}
@@ -25,12 +26,14 @@ GatheringPage = {}
 local function BuildExpansionRadioGroup(onSelect)
     local currentLevel = Functions_General:GetServerExpansionLevel()
 
-    -- MiningData/HerbalismData only have columns for Classic and TBC so far,
-    -- so higher levels wouldn't have anything to show - drop them until data
-    -- for them exists.
+    -- Cap the offered expansions at what this addon's own .toc declares
+    -- support for (see Functions_General:GetHighestSupportedExpansion) -
+    -- falls back to Classic, the addon's guaranteed-minimum declared
+    -- expansion, if the client has no way to read that.
+    local highestSupported = Functions_General:GetHighestSupportedExpansion(addonName) or LE_EXPANSION_CLASSIC
     local levels = {}
     for _, level in ipairs(Functions_General:GetExpansionLevels()) do
-        if level <= LE_EXPANSION_BURNING_CRUSADE then
+        if level <= highestSupported then
             levels[#levels + 1] = level
         end
     end
