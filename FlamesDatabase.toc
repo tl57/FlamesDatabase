@@ -1,7 +1,7 @@
 ## Interface: 11509, 20506
 ## Title: Flame's Database
 ## Notes: Profession, Spell and Item Database
-## Version: 0.4.1
+## Version: 0.5.0
 ## Author: Flame
 ## SavedVariables: FlamesDatabase
 ## SavedVariablesPerCharacter: FlamesDatabaseCharSV

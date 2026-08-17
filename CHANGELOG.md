@@ -1,4 +1,8 @@
 # Changelog
+## v0.5.0
+### Added
+- Dungeon Quests now show progress status
+- Added a mouseover legend to Quest Status and Effort
 
 ## v0.4.1
 ### Fixed

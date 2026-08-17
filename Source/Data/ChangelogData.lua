@@ -4,6 +4,13 @@
 
 ChangelogData = {
     {
+        version = "0.5.0",
+        changes = {
+            { category = "Added", text = "Dungeon Quests now show progress status" },
+            { category = "Added", text = "Added a mouseover legend to Quest Status and Effort" },
+        },
+    },
+    {
         version = "0.4.1",
         changes = {
             { category = "Fixed", text = "Fixed an issue with TBC packaging." },

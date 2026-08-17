@@ -54,7 +54,8 @@ function showWelcomeFrame()
 		"Mining skill levels, zones and item links.",
 		"Herbalism skill levels, zones and item links.",
 		"Filter gathering profession information by Expansion.",
-		"Dungeon information, including NPC information, quest information and links.",
+		"Dungeon information such as Mob and Boss levels",
+		"Dungeon Quest information such as NPC, Quest Link, Quest Status and Notes.",
 		"Filter visible Dungeon Quest information.",
 		"Open the main window with /fdb",
 	}
