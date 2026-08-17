@@ -4,6 +4,12 @@
 
 ChangelogData = {
     {
+        version = "0.4.1",
+        changes = {
+            { category = "Fixed", text = "Fixed an issue with TBC packaging." },
+        },
+    },
+    {
         version = "0.4.0",
         changes = {
             { category = "Added", text = "Added Support and data for TBC." },

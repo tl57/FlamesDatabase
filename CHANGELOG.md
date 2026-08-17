@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.1
+### Fixed
+- Fixed an issue with TBC packaging
+
 ## v0.4.0
 ### Added
 - Added Support for Burning Crusade
