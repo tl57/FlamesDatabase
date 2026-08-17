@@ -9,6 +9,14 @@ local options = {
       type = "header",
       name = addonName,
     },
+    showChangeLog = {
+      order = 2,
+      type = "toggle",
+      name = "Show Changelog after an update",
+      desc = "Automatically show the changelog window when the addon updates to a new version.",
+      get = function(info) return FlamesDatabase.settings.showChangeLog end,
+      set = function(info, value) FlamesDatabase.settings.showChangeLog = value end,
+    },
   },
 }
 
