@@ -21,6 +21,13 @@ Rows are keyed by column id. Values that are nil render as empty cells.
 Consecutive columns sharing the same `group` value are merged into one header
 cell; other columns show column.title if provided, else column.name.
 
+`columns[1].autoWidth = true` (instead of giving it a fixed `width`) sizes
+the Name column to fit the widest of the rows it's about to show (its name
+text, icon if any, expansion suffix if any - see MeasureTextWidth) rather
+than a manually guessed number - recomputed every DataTable:Build call, so it
+resizes if `selectedExpansion` changes which rows are shown. Only meaningful
+on column[1]; every other column still needs an explicit `width`.
+
 `options.rowHeight` overrides the default row height (ROW_HEIGHT below) for
 every row in this table - useful when a column's word-wrapped text needs a
 taller row so its second line doesn't overlap the row border below.
@@ -57,6 +64,14 @@ is selected, since LE_EXPANSION_* values increase with each expansion and this
 is a plain `<=` comparison, this keeps working unmodified as later expansions
 are added - nothing here needs to change.
 
+A row's own `Introduced` also controls its Name column directly: rows
+introduced in Classic get no suffix; anything later gets its expansion name
+appended in brackets (e.g. "Felweed [TBC]", via Functions_General:GetExpansionName)
+in a smaller, deep-pink font right after the name - rendered as a separate
+FontString (cell.suffix) since a single FontString can't mix font sizes.
+Nothing to update here as later expansions are added, since that function
+already has their names.
+
 Row/header frames are pooled per container frame and reused across rebuilds
 (see AcquireRow/AcquireCell) rather than always creating new ones - a given
 page (e.g. a profession tab) rebuilds its table via a fresh DataTable:Build
@@ -88,6 +103,13 @@ local ICON_TEXT_GAP    = 4
 local BORDER_THICKNESS = 1
 local BORDER_COLOR     = { 1, 1, 1, 0.5 }
 local TEXT_COLOR_DEFAULT = { 1, 1, 1 }
+
+-- Name column's "[TBC]"-style expansion suffix (see BuildRow) - deep pink,
+-- deliberately loud so it stands out from the plain-white name text next to it.
+local EXPANSION_SUFFIX_COLOR = { 1, 0.078, 0.576 }
+-- Shaved off the cell's own font size (see AcquireCell) rather than a fixed
+-- size, so the suffix stays proportionally smaller if the base font ever changes.
+local EXPANSION_SUFFIX_FONT_SIZE_DELTA = -3
 
 -- Column-identity text colors keyed by a column's `background` name, e.g.
 -- { id = "OrangeClassicMine", background = "orange" } -> that column's
@@ -176,6 +198,12 @@ local function AcquireCell(container, parent)
         -- the same time. Forcing it off keeps every cell single-line always.
         cell.text:SetWordWrap(true)
         cell.text:SetPoint("RIGHT", -PADDING, 0)
+        -- Name column's "[TBC]"-style expansion suffix (see BuildRow) - a
+        -- separate FontString rather than appended to cell.text's own
+        -- string, since a single FontString can't mix font sizes and this
+        -- needs to render smaller than the name text next to it.
+        cell.suffix = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        cell.suffix:SetWordWrap(false)
         container.cellPool[n] = cell
     end
 
@@ -187,6 +215,8 @@ local function AcquireCell(container, parent)
     cell.icon:Hide()
     cell.text:SetTextColor(TEXT_COLOR_DEFAULT[1], TEXT_COLOR_DEFAULT[2], TEXT_COLOR_DEFAULT[3])
     cell.text:SetPoint("LEFT", PADDING, 0)
+    cell.suffix:ClearAllPoints()
+    cell.suffix:Hide()
     -- Reset any item-link hover/click behavior a previous use of this pooled
     -- cell may have wired up (see BuildRow) - cleared here, opted back into
     -- per-cell by whichever caller actually needs it this build. pendingItemId
@@ -384,14 +414,34 @@ local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
             -- label once loaded. QuestLinkId is the same idea for a quest
             -- hyperlink instead (see WireQuestCell) - mutually exclusive
             -- with ItemLinkId.
-            cell.text:SetText(value or "")
+            local text = value or ""
+            cell.text:SetText(text)
             if nameColor then
                 cell.text:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
             end
             if row.ItemLinkId then
-                WireItemCell(cell, row.ItemLinkId, value)
+                WireItemCell(cell, row.ItemLinkId, text)
             elseif row.QuestLinkId then
-                WireQuestCell(cell, row.QuestLinkId, row.QuestLevel, value)
+                WireQuestCell(cell, row.QuestLinkId, row.QuestLevel, text)
+            end
+
+            -- If this row wasn't introduced in Classic, append its expansion
+            -- in brackets (e.g. "[TBC]") as a separate, smaller, deep-pink
+            -- FontString right after the name text - a single FontString
+            -- can't mix font sizes, so this can't just be appended to
+            -- cell.text's own string. Anchored off cell.text's own rendered
+            -- width (measured fresh here, right after SetText above) so it
+            -- sits immediately after the name regardless of length. Nothing
+            -- here needs to change for later expansions - GetExpansionName
+            -- already has their names.
+            if row.Introduced and row.Introduced ~= LE_EXPANSION_CLASSIC then
+                cell.suffix:SetText(" [" .. Functions_General:GetExpansionName(row.Introduced) .. "]")
+                cell.suffix:SetTextColor(EXPANSION_SUFFIX_COLOR[1], EXPANSION_SUFFIX_COLOR[2], EXPANSION_SUFFIX_COLOR[3])
+                local fontFile, fontSize, fontFlags = cell.text:GetFont()
+                cell.suffix:SetFont(fontFile, math.max((fontSize or 10) + EXPANSION_SUFFIX_FONT_SIZE_DELTA, 6), fontFlags)
+                cell.suffix:ClearAllPoints()
+                cell.suffix:SetPoint("LEFT", cell.text, "LEFT", cell.text:GetStringWidth() + 2, 0)
+                cell.suffix:Show()
             end
         else
             cell.text:SetText(value or "")
@@ -423,6 +473,29 @@ local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
     end
 end
 
+-- Hidden FontString reused to measure text width for auto-sized columns
+-- (see column.autoWidth below) without needing an actual rendered cell -
+-- never shown, parented to UIParent since it isn't tied to any one table's
+-- container. baseFontFile/Size/Flags are captured from GameFontNormalSmall
+-- the first time this runs (the same template every cell.text/cell.suffix
+-- uses) and reused for every later measurement.
+local measureFontString
+local baseFontFile, baseFontSize, baseFontFlags
+
+-- Measures `text` as it would actually render: at the cell's base font by
+-- default, or that font shifted by `sizeDelta` (e.g. the Name column's
+-- expansion-suffix font, EXPANSION_SUFFIX_FONT_SIZE_DELTA smaller - mirrors
+-- BuildRow's identical derivation off cell.text:GetFont()).
+local function MeasureTextWidth(text, sizeDelta)
+    if not measureFontString then
+        measureFontString = UIParent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        baseFontFile, baseFontSize, baseFontFlags = measureFontString:GetFont()
+    end
+    measureFontString:SetFont(baseFontFile, math.max(baseFontSize + (sizeDelta or 0), 6), baseFontFlags)
+    measureFontString:SetText(text)
+    return measureFontString:GetStringWidth()
+end
+
 -- Build the table into an AceGUI SimpleGroup and return it. When
 -- `selectedExpansion` is given, only columns with no `exp` (e.g. the id/name
 -- column) or with `exp == selectedExpansion` are included - everything else
@@ -452,6 +525,38 @@ function DataTable:Build(parent, options, selectedExpansion)
             end
         end
         rows = filteredRows
+    end
+
+    -- columns[1].autoWidth sizes the Name column to fit the widest of the
+    -- rows it's actually about to show (post expansion-filtering above) -
+    -- its name text, its icon if the row has an ItemLinkId, and its
+    -- "[TBC]"-style expansion suffix if it has one (mirrors BuildRow's own
+    -- i==1 layout) - instead of a fixed number that has to be revisited by
+    -- hand whenever data changes. Recomputed on every Build call (not just
+    -- when columns[1].width happens to be unset) since `rows` here is
+    -- already filtered by whichever expansion is currently selected, so the
+    -- column can and does resize when that selection changes. Only
+    -- column[1] is handled this way - BuildRow's icon/suffix layout is
+    -- specific to the Name column, so auto-sizing wouldn't mean the same
+    -- thing for any other column.
+    if columns[1] and columns[1].autoWidth then
+        local maxWidth = 0
+        for _, row in ipairs(rows) do
+            local rowWidth = MeasureTextWidth(row.Name or "")
+            if row.ItemLinkId then
+                rowWidth = rowWidth + ICON_SIZE + ICON_TEXT_GAP
+            end
+            if row.Introduced and row.Introduced ~= LE_EXPANSION_CLASSIC then
+                rowWidth = rowWidth + MeasureTextWidth(
+                    " [" .. Functions_General:GetExpansionName(row.Introduced) .. "]",
+                    EXPANSION_SUFFIX_FONT_SIZE_DELTA
+                )
+            end
+            if rowWidth > maxWidth then
+                maxWidth = rowWidth
+            end
+        end
+        columns[1].width = maxWidth + 2 * PADDING
     end
 
     -- Precompute each column's left x-offset.

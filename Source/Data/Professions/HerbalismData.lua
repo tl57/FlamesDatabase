@@ -8,7 +8,7 @@
 HerbalismData = {
     profession = "Herbalism",
     columns = {
-        { id = "Name",              width = 142 },
+        { id = "Name",              autoWidth = true },
         { id = "OrangeClassicHerb", width = 37,  group = "Herb", exp = LE_EXPANSION_CLASSIC,         background = "orange" },
         { id = "YellowClassicHerb", width = 37,  group = "Herb", exp = LE_EXPANSION_CLASSIC,         background = "yellow" },
         { id = "GreenClassicHerb",  width = 37,  group = "Herb", exp = LE_EXPANSION_CLASSIC,         background = "green" },
