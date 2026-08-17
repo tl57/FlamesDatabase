@@ -74,3 +74,27 @@ function Functions_General:CompareVersions(v1, v2)
     end
     return 0
 end
+
+-- Wraps `text` in a |cffRRGGBB...|r color escape sequence built from `color`
+-- ({r,g,b}, each 0-1 - the same format already used throughout this addon's
+-- valueColors/valueBackgrounds/etc.), so static data (e.g. a column's legend
+-- tooltip, see DataTable.lua's column.info) can embed colored text without
+-- hand-writing hex codes.
+function Functions_General:ColorizeText(text, color)
+    return ("|cff%02x%02x%02x%s|r"):format(
+        math.floor((color[1] or 1) * 255 + 0.5),
+        math.floor((color[2] or 1) * 255 + 0.5),
+        math.floor((color[3] or 1) * 255 + 0.5),
+        text
+    )
+end
+
+-- Wraps `texturePath` in a |T...|t inline-texture escape sequence (WoW's
+-- equivalent of ColorizeText above, but for embedding an icon instead of
+-- colored text - e.g. a column's legend tooltip, see DataTable.lua's
+-- column.info, showing the actual icon a cell renders instead of a text
+-- description of it). `size` defaults to 14 (matches DataTable.lua's own
+-- INFO_ICON_SIZE) if omitted.
+function Functions_General:InlineIcon(texturePath, size)
+    return ("|T%s:%d|t"):format(texturePath, size or 14)
+end

@@ -132,7 +132,7 @@ function DungeonEntry:Build(scroll, parent, dungeons)
         scroll:AddChild(contentWidget)
     end
 
-    -- Keeps the Done column live while this page stays open: QUEST_LOG_UPDATE
+    -- Keeps the Status column live while this page stays open: QUEST_LOG_UPDATE
     -- is Blizzard's catch-all for any quest log change - accepting, turning
     -- in, failing (e.g. a timed escort running out), or a quest otherwise
     -- disappearing from the log - so one handler covers every case DataTable's

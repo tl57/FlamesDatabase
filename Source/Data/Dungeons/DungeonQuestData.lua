@@ -9,9 +9,36 @@
 -- the vertical scrollbar - unlike Mining/Herbalism's DataTable, every
 -- column is always shown (no per-expansion filtering), so the sum has to
 -- fit on its own without that headroom.
+-- Shared with the Effort column's info legend below, so the legend's swatch
+-- colors can never drift out of sync with the cell backgrounds they describe.
+local EffortColors = {
+    Low    = { 0.20, 0.80, 0.20 },
+    Medium = { 0.85, 0.80, 0.10 },
+    High   = { 0.90, 0.15, 0.15 },
+}
+
 local QuestColumns = {
     { id = "Name",  title = "",      width = 170 },
-    { id = "Done",  title = "Done?", width = 66, justify = "CENTER" },
+    {
+        id = "Status",
+        title = "Status",
+        width = 66,
+        -- Colors/icons quoted from Functions_Quests.StatusColors/StatusIcons
+        -- (Quests.lua) - the same tables DataTable.lua's BuildRow uses for
+        -- the actual cell rendering, so this legend can't drift out of sync
+        -- with it.
+        info = {
+            Functions_General:InlineIcon(Functions_Quests.StatusIcons.Completed)
+            .. " - Quest Completed",
+            "Accepted - Currently in your quest log",
+            Functions_General:ColorizeText("Failed", Functions_Quests.StatusColors.Failed)
+            .. " - Quest Failed (e.g. a timed escort that ran out)",
+            Functions_General:ColorizeText("Ineligible", Functions_Quests.StatusColors.Ineligible)
+            .. " - Wrong Faction/Class for this quest",
+            Functions_General:InlineIcon(Functions_Quests.StatusIcons.NotStarted)
+            .. " - Not started",
+        },
+    },
     { id = "Level", title = "Lvl",   width = 31, justify = "CENTER" },
     {
         id = "Faction",
@@ -33,12 +60,13 @@ local QuestColumns = {
         title = "Effort",
         --width = 68, -- old width, when using Minimum, Medium and Maximum for the Effort
         width = 59, -- new width, when using Low, Medium, and High for the Effort
-        justify = "CENTER",
-        valueBackgrounds = {
-            Low    = { 0.20, 0.80, 0.20 },
-            Medium = { 0.85, 0.80, 0.10 },
-            High   = { 0.90, 0.15, 0.15 },
+        info = {
+            "Legend:",
+            Functions_General:ColorizeText("Low", EffortColors.Low) .. " - A simple accept Quest",
+            Functions_General:ColorizeText("Medium", EffortColors.Medium) .. " - A chain, requires backtracking or far away",
+            Functions_General:ColorizeText("High", EffortColors.High) .. " - A long chain or requires low drop rate item",
         },
+        valueBackgrounds = EffortColors,
     },
     {
         id = "Shareable",
@@ -749,7 +777,7 @@ DungeonQuestData = {
                 Level       = 25,
                 Faction     = "Alliance",
                 NPC         = "Heralath Fallowbrook\n(Razorfen Kraul)",
-                Effort      = "Medium",
+                Effort      = "High",
                 Shareable   = "Yes",
                 Chain       = nil,
                 Note        = "The quest item is a random drop inside the dungeon. Very low drop.",

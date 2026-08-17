@@ -1,5 +1,28 @@
 Functions_Quests = {}
 
+-- Colors for the Status column's non-icon statuses (see DataTable.lua's
+-- BuildRow) - shared here, rather than kept as private constants in
+-- DataTable.lua, so DungeonQuestData.lua's column.info legend can quote the
+-- exact same colors instead of a second, driftable copy. "Completed" has no
+-- BuildRow use of its own (that status renders as a green checkmark icon,
+-- not colored text) - it's included purely so the legend's swatch matches
+-- the icon's color.
+Functions_Quests.StatusColors = {
+    Completed  = { 0.20, 0.80, 0.20 },
+    Failed     = { 1.00, 0.55, 0.00 },
+    Ineligible = { 0.90, 0.20, 0.20 },
+}
+
+-- Icon textures for the Status column's two icon-only statuses (see
+-- DataTable.lua's BuildRow) - shared the same way as StatusColors above, so
+-- DungeonQuestData.lua's column.info legend can embed (via WoW's |T...|t
+-- inline-texture escape) the exact same icons instead of a second, driftable
+-- copy of these paths.
+Functions_Quests.StatusIcons = {
+    Completed  = "Interface\\RaidFrame\\ReadyCheck-Ready",
+    NotStarted = "Interface\\RaidFrame\\ReadyCheck-NotReady",
+}
+
 -- Quest completion is per-character. FlamesDatabaseCharSV is only reliably
 -- populated by the client around PLAYER_LOGIN (same reason main.lua defers
 -- its own FlamesDatabase.settings init to that event rather than doing it at

@@ -43,6 +43,12 @@ fills the cell's own background texture instead of its text (e.g.
 { Low = {0,1,0}, Medium = {1,1,0}, High = {1,0,0} }, each {r,g,b[,a]} -
 alpha defaults to 0.35). A value with no entry stays unfilled.
 
+`column.info` (an array of strings, one per tooltip line - typically a legend
+of the column's possible values, each optionally colorized via
+Functions_General:ColorizeText) puts a small "(i)" icon at the header cell's
+right edge; hovering it shows the column's title followed by those lines as a
+GameTooltip, nothing otherwise (see AcquireInfoIcon).
+
 If a row has an `ItemLinkId` (an itemID, not part of `columns`), the Name
 column shows that item's icon and gets tooltip/shift-click-to-chat behavior,
 while still displaying the row's own Name text (see WireItemCell).
@@ -53,9 +59,9 @@ quest hyperlink rather than an item one (see WireQuestCell). An optional
 `QuestLevel` (also not part of `columns`) is used when building the link's
 level field. ItemLinkId and QuestLinkId are mutually exclusive per row.
 
-A column with `id = "Done"` is a special case: it never reads a `Done` field
-from the row (none is ever set) - instead it derives quest-completion status
-from the row's own `QuestLinkId` via Functions_Quests, showing a green
+A column with `id = "Status"` is a special case: it never reads a `Status`
+field from the row (none is ever set) - instead it derives quest-completion
+status from the row's own `QuestLinkId` via Functions_Quests, showing a green
 checkmark icon, "Accepted" text, or a red X icon (see BuildRow).
 
 When `selectedExpansion` is given (one of Functions_General:GetExpansionLevels()),
@@ -104,6 +110,12 @@ local PADDING          = 8
 local ICON_SIZE        = 16
 local ICON_TEXT_GAP    = 4
 
+-- Header column info-tooltip icon (see col.info, AcquireInfoIcon, and
+-- DataTable:Build's header loop) - Blizzard's own small "(i)" icon, also
+-- used by e.g. the Friends List for inline info tooltips.
+local INFO_ICON_SIZE    = 14
+local INFO_ICON_TEXTURE = "Interface\\FriendsFrame\\InformationIcon"
+
 -- Thin white border settings.
 local BORDER_THICKNESS = 1
 local BORDER_COLOR     = { 1, 1, 1, 0.5 }
@@ -125,11 +137,6 @@ local CELL_BACKGROUND_COLORS = {
     green  = { 0.45, 0.60, 0.45 },
     grey   = { 0.55, 0.55, 0.55 },
 }
-
--- "Done" column status colors (see BuildRow) - red for a row this character
--- is ineligible for ("N/A"), orange for a failed quest still in the log.
-local DONE_INELIGIBLE_COLOR = { 0.90, 0.20, 0.20 }
-local DONE_FAILED_COLOR     = { 1.00, 0.55, 0.00 }
 
 -- Text colors for a numeric cell, based on (playerSkill - cellValue).
 local SKILL_DIFF_RED    = { 0.90, 0.15, 0.15 }
@@ -209,7 +216,7 @@ local function AcquireCell(container, parent)
         cell.text:SetWordWrap(true)
         cell.text:SetPoint("RIGHT", -PADDING, 0)
         -- Captured once, right off the template, so BuildRow's "Failed"
-        -- status (see the Done column) can switch cell.text to a bold-ish
+        -- status (see the Status column) can switch cell.text to a bold-ish
         -- THICKOUTLINE font and this always has an unmutated original to
         -- restore back to on the cell's next reuse, below.
         cell.text.baseFontFile, cell.text.baseFontSize, cell.text.baseFontFlags = cell.text:GetFont()
@@ -244,6 +251,36 @@ local function AcquireCell(container, parent)
     cell:SetScript("OnMouseUp", nil)
     cell.pendingItemId = nil
     return cell
+end
+
+-- Returns the next reusable info-tooltip icon from `container`'s info-icon
+-- pool (creating one if needed), parented under `parent`. Used by a header
+-- column's optional `col.info` text (see DataTable:Build's header loop) -
+-- pooled the same way as AcquireRow/AcquireCell rather than created fresh
+-- per build, since DataTable:Build can now run often (e.g. DungeonEntry's
+-- live quest-event refresh) and a plain CreateFrame call per build would
+-- leak a new frame every time. `container.infoIconsUsed` must be reset to 0
+-- at the start of a build.
+local function AcquireInfoIcon(container, parent)
+    container.infoIconPool = container.infoIconPool or {}
+    container.infoIconsUsed = container.infoIconsUsed + 1
+    local n = container.infoIconsUsed
+
+    local icon = container.infoIconPool[n]
+    if not icon then
+        icon = CreateFrame("Frame", nil, parent)
+        icon:SetSize(INFO_ICON_SIZE, INFO_ICON_SIZE)
+        icon.texture = icon:CreateTexture(nil, "ARTWORK")
+        icon.texture:SetAllPoints(icon)
+        icon.texture:SetTexture(INFO_ICON_TEXTURE)
+        container.infoIconPool[n] = icon
+    end
+
+    icon:SetParent(parent)
+    icon:ClearAllPoints()
+    icon:Show()
+    icon:EnableMouse(true)
+    return icon
 end
 
 -- Sizes a cell acquired via AcquireCell and (re)draws its border. Pass
@@ -468,8 +505,8 @@ local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
                 cell.suffix:SetPoint("LEFT", cell.text, "LEFT", cell.text:GetStringWidth() + 2, 0)
                 cell.suffix:Show()
             end
-        elseif col.id == "Done" then
-            -- Not a data field (no row ever sets row.Done) - derived here at
+        elseif col.id == "Status" then
+            -- Not a data field (no row ever sets row.Status) - derived here at
             -- render time from row.QuestLinkId: green check if already
             -- completed (fast saved-variable check first, falling back to a
             -- live API check that also persists the result - see
@@ -483,7 +520,8 @@ local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
             if not Functions_Quests:IsFactionEligible(row.Faction) then
                 cell.text:SetJustifyH("CENTER")
                 cell.text:SetText("Ineligible")
-                cell.text:SetTextColor(DONE_INELIGIBLE_COLOR[1], DONE_INELIGIBLE_COLOR[2], DONE_INELIGIBLE_COLOR[3])
+                local color = Functions_Quests.StatusColors.Ineligible
+                cell.text:SetTextColor(color[1], color[2], color[3])
             else
                 local questId = row.QuestLinkId
                 local isDone = questId and (Functions_Quests:IsQuestMarkedComplete(questId)
@@ -491,21 +529,22 @@ local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
 
                 if isDone then
                     cell.text:SetText("")
-                    cell.icon:SetTexture("Interface\\RaidFrame\\ReadyCheck-Ready")
+                    cell.icon:SetTexture(Functions_Quests.StatusIcons.Completed)
                     cell.icon:SetPoint("CENTER", 0, 0)
                     cell.icon:Show()
                 elseif questId and Functions_Quests:IsQuestAccepted(questId) then
                     cell.text:SetJustifyH("CENTER")
                     if Functions_Quests:IsQuestFailed(questId) then
                         cell.text:SetText("Failed")
-                        cell.text:SetTextColor(DONE_FAILED_COLOR[1], DONE_FAILED_COLOR[2], DONE_FAILED_COLOR[3])
+                        local color = Functions_Quests.StatusColors.Failed
+                        cell.text:SetTextColor(color[1], color[2], color[3])
                         cell.text:SetFont(cell.text.baseFontFile, cell.text.baseFontSize, "THICKOUTLINE")
                     else
                         cell.text:SetText("Accepted")
                     end
                 else
                     cell.text:SetText("")
-                    cell.icon:SetTexture("Interface\\RaidFrame\\ReadyCheck-NotReady")
+                    cell.icon:SetTexture(Functions_Quests.StatusIcons.NotStarted)
                     cell.icon:SetPoint("CENTER", 0, 0)
                     cell.icon:Show()
                 end
@@ -664,13 +703,17 @@ function DataTable:Build(parent, options, selectedExpansion)
         for _, frame in ipairs(self.frame.cellPool or {}) do
             frame:Hide()
         end
+        for _, frame in ipairs(self.frame.infoIconPool or {}) do
+            frame:Hide()
+        end
     end
 
-    -- Reset this build's usage counters; AcquireRow/AcquireCell reuse
-    -- container.rowPool/cellPool from a previous build of this (possibly
-    -- recycled) container instead of creating fresh frames.
+    -- Reset this build's usage counters; AcquireRow/AcquireCell/AcquireInfoIcon
+    -- reuse container.rowPool/cellPool/infoIconPool from a previous build of
+    -- this (possibly recycled) container instead of creating fresh frames.
     container.rowsUsed = 0
     container.cellsUsed = 0
+    container.infoIconsUsed = 0
 
     -- Header row. Consecutive columns sharing a `group` value are merged into
     -- one cell; other columns show column.title if provided, else
@@ -710,6 +753,36 @@ function DataTable:Build(parent, options, selectedExpansion)
         cell.text:SetJustifyH(justify)
         cell.text:SetText(label or "")
 
+        -- Optional `col.info` (e.g. QuestColumns' Status/Effort columns in
+        -- DungeonQuestData.lua): a small "(i)" icon at the cell's right edge
+        -- that shows col.info as a GameTooltip on hover, nothing otherwise.
+        -- col.info is an array of strings, one per tooltip line (typically a
+        -- legend of the column's possible values) - each may embed WoW color
+        -- escape codes (see Functions_General:ColorizeText) to render part of
+        -- the line in a specific color; AddLine's own r,g,b just sets the
+        -- default for whatever isn't already colored that way. wrap=false so
+        -- the tooltip frame widens to fit the longest line instead of
+        -- wrapping every line at some fixed width - these are short legend
+        -- lines meant to read as one line each, not paragraphs.
+        -- cell.text is narrowed so the label can't run under the icon.
+        if col.info then
+            cell.text:SetWidth(math.max(cellWidth - 2 * PADDING - INFO_ICON_SIZE - ICON_TEXT_GAP, 0))
+
+            local infoIcon = AcquireInfoIcon(container, header)
+            infoIcon:SetPoint("RIGHT", cell, "RIGHT", -PADDING, 0)
+            infoIcon:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                GameTooltip:AddLine(label or col.id)
+                for _, line in ipairs(col.info) do
+                    GameTooltip:AddLine(line, 1, 1, 1, false)
+                end
+                GameTooltip:Show()
+            end)
+            infoIcon:SetScript("OnLeave", function()
+                GameTooltip:Hide()
+            end)
+        end
+
         i = i + 1
     end
 
@@ -731,6 +804,9 @@ function DataTable:Build(parent, options, selectedExpansion)
     end
     for n = container.cellsUsed + 1, #container.cellPool do
         container.cellPool[n]:Hide()
+    end
+    for n = container.infoIconsUsed + 1, #(container.infoIconPool or {}) do
+        container.infoIconPool[n]:Hide()
     end
 
     return group
