@@ -28,7 +28,5 @@ jobs:
       - name: Package and release
         if: steps.check.outputs.on_master == 'true'
         uses: BigWigsMods/packager@v2
-        with:
-          args: -g classic
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
