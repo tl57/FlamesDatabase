@@ -11,7 +11,7 @@
 -- fit on its own without that headroom.
 local QuestColumns = {
     { id = "Name",  title = "",      width = 170 },
-    { id = "Done",  title = "Done?", width = 70, justify = "CENTER" },
+    { id = "Done",  title = "Done?", width = 66, justify = "CENTER" },
     { id = "Level", title = "Lvl",   width = 31, justify = "CENTER" },
     {
         id = "Faction",
