@@ -10,14 +10,12 @@ part, then keep adding profession-specific widgets (e.g. a "Recommended gear"
 section) before returning the scroll.
 -------------------------------------------------------------------------------]]
 local AceGUI = LibStub("AceGUI-3.0")
-local addonName = ...
 local profession = nil
 
 GatheringPage = {}
 
 -- A label followed by a dropdown, on the same row, offering one option per
--- expansion this addon supports (capped by
--- Functions_General:GetHighestSupportedExpansion), with the one matching the
+-- expansion `data` actually has columns for, with the one matching the
 -- realm's current expansion pre-selected. Uses AceGUI's own Dropdown widget
 -- instead of hand-built radio buttons, so there's no per-option width
 -- budgeting or exclusivity handling to get wrong - the row always has
@@ -27,14 +25,26 @@ GatheringPage = {}
 -- pre-selection - the caller already gets that back as the second return
 -- value).
 -- Returns the group widget and the initially selected level.
-local function BuildExpansionDropdown(onSelect)
+local function BuildExpansionDropdown(onSelect, data)
     local currentLevel = Functions_General:GetServerExpansionLevel()
 
-    -- Cap the offered expansions at what this addon's own .toc declares
-    -- support for (see Functions_General:GetHighestSupportedExpansion) -
-    -- falls back to Classic, the addon's guaranteed-minimum declared
-    -- expansion, if the client has no way to read that.
-    local highestSupported = Functions_General:GetHighestSupportedExpansion(addonName) or LE_EXPANSION_CLASSIC
+    -- Cap the offered expansions at what `data.columns` actually has data
+    -- for (i.e. the highest `col.exp` present), not at what the client
+    -- currently running this addon happens to support - those are different
+    -- things: Functions_General:GetHighestSupportedExpansion reflects the
+    -- .toc's declared game-version compatibility (e.g. it reports Classic
+    -- while running on the Classic Era client even if the .toc also lists
+    -- TBC, since that's the closest match to *this* client), whereas here
+    -- we want every expansion this table has real data for, regardless of
+    -- which client is currently viewing it. Falls back to Classic if no
+    -- column declares an `exp` at all.
+    local highestSupported = LE_EXPANSION_CLASSIC
+    for _, col in ipairs(data.columns or {}) do
+        if col.exp and col.exp > highestSupported then
+            highestSupported = col.exp
+        end
+    end
+
     local levels = {}
     local names = {}
     for _, level in ipairs(Functions_General:GetExpansionLevels()) do
@@ -340,7 +350,7 @@ function GatheringPage:AddHeader(scroll, parent, profession, data, recommendatio
         scroll:AddChild(tableWidget, trailingSpacer)
     end
 
-    local expansionDropdown, initialExpansion = BuildExpansionDropdown(RebuildTable)
+    local expansionDropdown, initialExpansion = BuildExpansionDropdown(RebuildTable, data)
     scroll:AddChild(expansionDropdown)
 
     scroll:AddChild(GeneralUI:BuildSpacer())
