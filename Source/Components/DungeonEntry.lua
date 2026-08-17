@@ -132,6 +132,42 @@ function DungeonEntry:Build(scroll, parent, dungeons)
         scroll:AddChild(contentWidget)
     end
 
+    -- Keeps the Done column live while this page stays open: QUEST_LOG_UPDATE
+    -- is Blizzard's catch-all for any quest log change - accepting, turning
+    -- in, failing (e.g. a timed escort running out), or a quest otherwise
+    -- disappearing from the log - so one handler covers every case DataTable's
+    -- BuildRow can show (green check/"Failed"/"Accepted"/red X) without
+    -- needing to know which of those actually changed; RebuildContent
+    -- re-derives each row's status from scratch regardless. Debounced via
+    -- C_Timer.After since a single kill can fire several QUEST_LOG_UPDATEs
+    -- back to back and RebuildContent rebuilds the whole visible table.
+    local refreshFrame = CreateFrame("Frame")
+    local pageReleased = false
+    local refreshScheduled = false
+    refreshFrame:RegisterEvent("QUEST_LOG_UPDATE")
+    refreshFrame:SetScript("OnEvent", function()
+        if pageReleased or refreshScheduled then return end
+        refreshScheduled = true
+        C_Timer.After(0.2, function()
+            refreshScheduled = false
+            if not pageReleased then
+                RebuildContent()
+            end
+        end)
+    end)
+
+    -- Stops listening once this page's scroll frame is torn down (tab
+    -- switched away, or the addon window closed) - AceGUI releases it back
+    -- to its widget pool at that point (see CategoryTabs:Render), and
+    -- pageReleased also guards a refresh that was already debounced/in-flight
+    -- at that exact moment, since RebuildContent above touches scroll/
+    -- contentWidget directly and either could since have been recycled for
+    -- an unrelated page.
+    scroll:SetCallback("OnRelease", function()
+        pageReleased = true
+        refreshFrame:UnregisterAllEvents()
+    end)
+
     -- Whole pixels only: Flow's per-child fit check compares this exact
     -- Lua-side number against `width` (see AceGUI-3.0.lua), while the
     -- widget's actual on-screen edge (used to anchor the *next* sibling) is
