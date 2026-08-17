@@ -1,6 +1,9 @@
 # Changelog
 
-## v0.3.1
+## v0.4.0
+### Added
+- Added Support for Burning Crusade
+- Added Data for Burning Crusade
 ### Changed
 - Expansion Data is now a dropdown
 
