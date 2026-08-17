@@ -19,6 +19,7 @@ Source/Tools/Functions/Professions.lua
 Source/Tools/Functions/GeneralUI.lua
 Source/Tools/Functions/AddOnAccess.lua
 Source/Tools/Functions/AceFunctions.lua
+Source/Tools/Functions/Quests.lua
 Source/Components/DungeonEntry.lua
 Source/Data/ChangelogData.lua
 Source/Data/Professions/MiningData.lua

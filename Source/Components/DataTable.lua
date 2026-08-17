@@ -53,6 +53,11 @@ quest hyperlink rather than an item one (see WireQuestCell). An optional
 `QuestLevel` (also not part of `columns`) is used when building the link's
 level field. ItemLinkId and QuestLinkId are mutually exclusive per row.
 
+A column with `id = "Done"` is a special case: it never reads a `Done` field
+from the row (none is ever set) - instead it derives quest-completion status
+from the row's own `QuestLinkId` via Functions_Quests, showing a green
+checkmark icon, "Accepted" text, or a red X icon (see BuildRow).
+
 When `selectedExpansion` is given (one of Functions_General:GetExpansionLevels()),
 only columns with no `exp` or with `exp == selectedExpansion` are included -
 `exp` otherwise has no visual effect of its own (no separate header row for
@@ -120,6 +125,11 @@ local CELL_BACKGROUND_COLORS = {
     green  = { 0.45, 0.60, 0.45 },
     grey   = { 0.55, 0.55, 0.55 },
 }
+
+-- "Done" column status colors (see BuildRow) - red for a row this character
+-- is ineligible for ("N/A"), orange for a failed quest still in the log.
+local DONE_INELIGIBLE_COLOR = { 0.90, 0.20, 0.20 }
+local DONE_FAILED_COLOR     = { 1.00, 0.55, 0.00 }
 
 -- Text colors for a numeric cell, based on (playerSkill - cellValue).
 local SKILL_DIFF_RED    = { 0.90, 0.15, 0.15 }
@@ -198,6 +208,11 @@ local function AcquireCell(container, parent)
         -- the same time. Forcing it off keeps every cell single-line always.
         cell.text:SetWordWrap(true)
         cell.text:SetPoint("RIGHT", -PADDING, 0)
+        -- Captured once, right off the template, so BuildRow's "Failed"
+        -- status (see the Done column) can switch cell.text to a bold-ish
+        -- THICKOUTLINE font and this always has an unmutated original to
+        -- restore back to on the cell's next reuse, below.
+        cell.text.baseFontFile, cell.text.baseFontSize, cell.text.baseFontFlags = cell.text:GetFont()
         -- Name column's "[TBC]"-style expansion suffix (see BuildRow) - a
         -- separate FontString rather than appended to cell.text's own
         -- string, since a single FontString can't mix font sizes and this
@@ -214,6 +229,7 @@ local function AcquireCell(container, parent)
     cell.icon:ClearAllPoints()
     cell.icon:Hide()
     cell.text:SetTextColor(TEXT_COLOR_DEFAULT[1], TEXT_COLOR_DEFAULT[2], TEXT_COLOR_DEFAULT[3])
+    cell.text:SetFont(cell.text.baseFontFile, cell.text.baseFontSize, cell.text.baseFontFlags)
     cell.text:SetPoint("LEFT", PADDING, 0)
     cell.suffix:ClearAllPoints()
     cell.suffix:Hide()
@@ -451,6 +467,48 @@ local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
                 cell.suffix:ClearAllPoints()
                 cell.suffix:SetPoint("LEFT", cell.text, "LEFT", cell.text:GetStringWidth() + 2, 0)
                 cell.suffix:Show()
+            end
+        elseif col.id == "Done" then
+            -- Not a data field (no row ever sets row.Done) - derived here at
+            -- render time from row.QuestLinkId: green check if already
+            -- completed (fast saved-variable check first, falling back to a
+            -- live API check that also persists the result - see
+            -- Functions_Quests), bold orange "Failed" if it's in the quest
+            -- log but failed, "Accepted" text if it's in the quest log and
+            -- neither completed nor failed, red X otherwise. Skipped
+            -- entirely (no quest-log/completion API calls at all) for a row
+            -- whose Faction rules out this character - e.g. an Alliance
+            -- character looking at a Horde-only or Warlock-only quest -
+            -- which shows red "Ineligible" instead.
+            if not Functions_Quests:IsFactionEligible(row.Faction) then
+                cell.text:SetJustifyH("CENTER")
+                cell.text:SetText("Ineligible")
+                cell.text:SetTextColor(DONE_INELIGIBLE_COLOR[1], DONE_INELIGIBLE_COLOR[2], DONE_INELIGIBLE_COLOR[3])
+            else
+                local questId = row.QuestLinkId
+                local isDone = questId and (Functions_Quests:IsQuestMarkedComplete(questId)
+                    or Functions_Quests:CheckAndSaveQuestCompletion(questId))
+
+                if isDone then
+                    cell.text:SetText("")
+                    cell.icon:SetTexture("Interface\\RaidFrame\\ReadyCheck-Ready")
+                    cell.icon:SetPoint("CENTER", 0, 0)
+                    cell.icon:Show()
+                elseif questId and Functions_Quests:IsQuestAccepted(questId) then
+                    cell.text:SetJustifyH("CENTER")
+                    if Functions_Quests:IsQuestFailed(questId) then
+                        cell.text:SetText("Failed")
+                        cell.text:SetTextColor(DONE_FAILED_COLOR[1], DONE_FAILED_COLOR[2], DONE_FAILED_COLOR[3])
+                        cell.text:SetFont(cell.text.baseFontFile, cell.text.baseFontSize, "THICKOUTLINE")
+                    else
+                        cell.text:SetText("Accepted")
+                    end
+                else
+                    cell.text:SetText("")
+                    cell.icon:SetTexture("Interface\\RaidFrame\\ReadyCheck-NotReady")
+                    cell.icon:SetPoint("CENTER", 0, 0)
+                    cell.icon:Show()
+                end
             end
         else
             cell.text:SetText(value or "")

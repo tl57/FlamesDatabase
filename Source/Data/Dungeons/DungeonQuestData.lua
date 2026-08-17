@@ -10,8 +10,9 @@
 -- column is always shown (no per-expansion filtering), so the sum has to
 -- fit on its own without that headroom.
 local QuestColumns = {
-    { id = "Name",  title = "",    width = 170 },
-    { id = "Level", title = "Lvl", width = 31, justify = "CENTER" },
+    { id = "Name",  title = "",      width = 170 },
+    { id = "Done",  title = "Done?", width = 70, justify = "CENTER" },
+    { id = "Level", title = "Lvl",   width = 31, justify = "CENTER" },
     {
         id = "Faction",
         title = "Faction",
@@ -287,7 +288,8 @@ DungeonQuestData = {
                 Effort      = "Medium",
                 Shareable   = "No",
                 Chain       = "Yes",
-                Note        = "Paladin-only quest. Requires pre-quest [Tome of Valor][20] defending Daphne Stilwell. Dropped by goblin woodworkers.",
+                Note        =
+                "Paladin-only quest. Requires pre-quest [Tome of Valor][20] defending Daphne Stilwell. Dropped by goblin woodworkers.",
             },
         },
     },
@@ -447,7 +449,8 @@ DungeonQuestData = {
                 Effort      = "Medium",
                 Shareable   = "No",
                 Chain       = "Yes",
-                Note        = "Paladin-only quest. Requires pre-quest [Tome of Valor][20] defending Daphne Stilwell. Loot the hammer in Shadowfang Stables.",
+                Note        =
+                "Paladin-only quest. Requires pre-quest [Tome of Valor][20] defending Daphne Stilwell. Loot the hammer in Shadowfang Stables.",
             },
         }
     },
@@ -527,7 +530,8 @@ DungeonQuestData = {
                 Effort      = "Medium",
                 Shareable   = "No",
                 Chain       = "Yes",
-                Note        = "Paladin-only quest. Accept [Seeking the Kor Gem] in Darkshore. Requires pre-quest [Tome of Valor][20] defending Daphne Stilwell.",
+                Note        =
+                "Paladin-only quest. Accept [Seeking the Kor Gem] in Darkshore. Requires pre-quest [Tome of Valor][20] defending Daphne Stilwell.",
             },
             {
                 Name        = "The Essence of Akumai",
@@ -691,7 +695,8 @@ DungeonQuestData = {
                 Effort      = "High",
                 Shareable   = "Yes",
                 Chain       = "Yes",
-                Note        = "Followup from [The Dark Iron War][25][Wetlands], elite quest. Requires killing many Dark Iron Dwarves.",
+                Note        =
+                "Followup from [The Dark Iron War][25][Wetlands], elite quest. Requires killing many Dark Iron Dwarves.",
             },
         }
     },
@@ -967,7 +972,8 @@ DungeonQuestData = {
                 Effort      = "Medium",
                 Shareable   = "Yes",
                 Chain       = nil,
-                Note        = "Requires prerequisite [Down the Scarlet Path][34] in Nijel's Point, Desolace. Kill 30 lvl 37-38 undeads.",
+                Note        =
+                "Requires prerequisite [Down the Scarlet Path][34] in Nijel's Point, Desolace. Kill 30 lvl 37-38 undeads.",
             },
             {
                 Name        = "Vorrel's Revenge",
@@ -991,7 +997,8 @@ DungeonQuestData = {
                 Effort      = "High",
                 Shareable   = "Yes",
                 Chain       = "Yes",
-                Note        = "Loot item in Library, third corridor. Very long quest chain. Starts with [Test of Faith][25] in 1K Needles, NE of Freewind Post.",
+                Note        =
+                "Loot item in Library, third corridor. Very long quest chain. Starts with [Test of Faith][25] in 1K Needles, NE of Freewind Post.",
             },
             {
                 Name        = "Compendium of the Fallen",
@@ -1039,7 +1046,8 @@ DungeonQuestData = {
                 Effort      = "Medium",
                 Shareable   = "Yes",
                 Chain       = "Yes",
-                Note        = "Loot book in the third corridor in Library. Requires [Hidden Secrets], followup from [Journey to the Marsh][30] at Mage trainers.",
+                Note        =
+                "Loot book in the third corridor in Library. Requires [Hidden Secrets], followup from [Journey to the Marsh][30] at Mage trainers.",
             },
         }
     },
