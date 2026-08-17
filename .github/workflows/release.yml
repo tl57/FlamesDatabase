@@ -11,8 +11,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check tag is on master
+        id: check
+        run: |
+          git fetch origin master
+          if git merge-base --is-ancestor "${{ github.sha }}" origin/master; then
+            echo "on_master=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "on_master=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Tag ${{ github.ref_name }} is not on master - skipping release."
+          fi
 
       - name: Package and release
+        if: steps.check.outputs.on_master == 'true'
         uses: BigWigsMods/packager@v2
         with:
           args: -g classic
