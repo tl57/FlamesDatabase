@@ -294,6 +294,15 @@ end
 -- are pooled/reused across rebuilds (switching tabs/expansions), so
 -- cell.pendingItemId guards against a delayed callback overwriting a cell
 -- that's since been recycled for something unrelated.
+--
+-- An itemId this client's item database doesn't recognize at all (e.g. a
+-- TBC-only item shown while running on the Classic Era client, now that the
+-- expansion dropdown offers TBC there too) doesn't fail gracefully -
+-- ContinueOnItemLoad throws deep inside Blizzard's own async callback
+-- system ("table index is nil" in Blizzard_ObjectAPI's GetOrCreateCallbacks)
+-- instead of just not calling back. pcall keeps that from surfacing as a
+-- visible Lua error; the cell just keeps its plain displayText with no
+-- icon/tooltip in that case, same as a row with no ItemLinkId at all.
 local function WireItemCell(cell, itemId, displayText)
     cell.pendingItemId = itemId
 
@@ -302,7 +311,7 @@ local function WireItemCell(cell, itemId, displayText)
         return
     end
 
-    item:ContinueOnItemLoad(function()
+    pcall(item.ContinueOnItemLoad, item, function()
         if cell.pendingItemId ~= itemId then
             return
         end
