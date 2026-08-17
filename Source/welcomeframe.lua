@@ -53,6 +53,7 @@ function showWelcomeFrame()
 	local placeholderFeatures = {
 		"Mining skill levels, zones and item links.",
 		"Herbalism skill levels, zones and item links.",
+		"Filter gathering profession information by Expansion.",
 		"Dungeon information, including NPC information, quest information and links.",
 		"Filter visible Dungeon Quest information.",
 		"Open the main window with /fdb",
