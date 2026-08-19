@@ -9,16 +9,6 @@ local Dungeons = {
 
 local ROW_HEIGHT = 14
 
--- Add a row showing `text` to `content` (a SimpleGroup's .content frame) at
--- `yOffset`. Returns the yOffset for the next row.
-local function AddInfoRow(content, text, yOffset)
-    local fontString = GeneralUI:AcquireInfoRow(content)
-    fontString:ClearAllPoints()
-    fontString:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -yOffset)
-    fontString:SetText(text)
-    return yOffset + ROW_HEIGHT
-end
-
 local INFO_CONTENT_WIDTH = 700
 
 -- Build and return the content widget (zone id, mob levels, one row per
@@ -54,12 +44,12 @@ local function BuildInfoContent(dungeon)
     -- Rows are positioned relative to `content`'s top, so the first one
     -- starts below the spacer rather than at y=0.
     local y = spacer.frame.height
-    y = AddInfoRow(content, ("Zone ID: %s"):format(dungeon.zoneid or "?"), y)
-    y = AddInfoRow(content, ("Mob Levels: %s-%s"):format(dungeon.minMobLevel or "?", dungeon.maxMobLevel or "?"), y)
+    y = GeneralUI:AddDungeonInfoRow(content, ("Zone ID: %s"):format(dungeon.zoneid or "?"), y, ROW_HEIGHT)
+    y = GeneralUI:AddDungeonInfoRow(content, ("Mob Levels: %s-%s"):format(dungeon.minMobLevel or "?", dungeon.maxMobLevel or "?"), y, ROW_HEIGHT)
 
-    y = AddInfoRow(content, "Boss Levels:", y)
+    y = GeneralUI:AddDungeonInfoRow(content, "Boss Levels:", y, ROW_HEIGHT)
     for _, boss in ipairs(dungeon.bosses or {}) do
-        y = AddInfoRow(content, ("%s: %s"):format(boss.name, boss.level), y)
+        y = GeneralUI:AddDungeonInfoRow(content, ("%s: %s"):format(boss.name, boss.level), y, ROW_HEIGHT)
     end
 
     -- Hide any pooled rows left over from a build with more rows than this
