@@ -1,4 +1,3 @@
-local AceGUI = LibStub("AceGUI-3.0")
 local addonName = ...
 local main_container = nil -- singleton: created once
 -- think about focusing a specific frame when having a profession open or in a specific dungeon
@@ -12,7 +11,7 @@ function toggleMainFrame()
 	end
 
 	if (not main_container) then
-		main_container = AceGUI:Create("Window")
+		main_container = Functions_Ace:CreateWindow()
 		main_container:SetTitle(addonName)
 		main_container:SetLayout("Fill")
 		main_container:SetWidth(770)

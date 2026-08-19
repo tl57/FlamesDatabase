@@ -1,5 +1,3 @@
-local AceGUI = LibStub("AceGUI-3.0")
-
 DungeonInfo = {}
 
 local Dungeons = {
@@ -14,7 +12,7 @@ local INFO_CONTENT_WIDTH = 700
 -- Build and return the content widget (zone id, mob levels, one row per
 -- boss) for `dungeon`.
 local function BuildInfoContent(dungeon)
-    local group = AceGUI:Create("SimpleGroup")
+    local group = Functions_Ace:CreateGroup()
     group:SetLayout("List")
     group:SetWidth(INFO_CONTENT_WIDTH)
     -- The rows below are pooled raw FontStrings, not real AceGUI children of
@@ -81,7 +79,7 @@ local DROPDOWN_WIDTH = 250
 -- selection changes. Returns the AceGUI widget (so the page builder can
 -- return it directly).
 function DungeonInfo:Build(parent)
-    local scroll = AceGUI:Create("ScrollFrame")
+    local scroll = Functions_Ace:CreateScrollFrame()
     scroll:SetLayout("List")
 
     local names = {}
@@ -101,7 +99,7 @@ function DungeonInfo:Build(parent)
                     break
                 end
             end
-            AceGUI:Release(contentWidget)
+            Functions_Ace:ReleaseWidget(contentWidget)
         end
         contentWidget = BuildInfoContent(Dungeons[index])
         scroll:AddChild(contentWidget)
@@ -110,13 +108,13 @@ function DungeonInfo:Build(parent)
     -- A Flow-layout row (mirrors GatheringPage.lua's BuildExpansionRadioGroup)
     -- rather than Dropdown's own SetLabel, which stacks the label above the
     -- control instead of beside it.
-    local label = AceGUI:Create("Label")
+    local label = Functions_Ace:CreateLabel()
     label:SetFontObject(GameFontHighlightLarge)
     label:SetText("Dungeon:")
     local labelWidth = math.ceil(label.label:GetStringWidth()) + 8
     label:SetWidth(labelWidth)
 
-    local dropdown = AceGUI:Create("Dropdown")
+    local dropdown = Functions_Ace:CreateDropdown()
     dropdown:SetWidth(DROPDOWN_WIDTH)
     dropdown:SetList(names)
     -- The Dropdown widget's selected-text FontString (self.text in
@@ -127,7 +125,7 @@ function DungeonInfo:Build(parent)
         SelectDungeon(index)
     end)
 
-    local row = AceGUI:Create("SimpleGroup")
+    local row = Functions_Ace:CreateGroup()
     row:SetLayout("Flow")
     local totalWidth = labelWidth + DROPDOWN_WIDTH
     row:SetWidth(totalWidth)

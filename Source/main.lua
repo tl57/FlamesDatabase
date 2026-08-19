@@ -1,4 +1,3 @@
-local AceGUI = LibStub("AceGUI-3.0")
 local addonName = ...
 -- load account-wide saved variables
 FlamesDatabase = FlamesDatabase or {}

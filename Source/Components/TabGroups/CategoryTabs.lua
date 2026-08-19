@@ -1,12 +1,10 @@
-local AceGUI = LibStub("AceGUI-3.0")
-
 CategoryTabs = {}
 CategoryTabs.__index = CategoryTabs
 
 -- Create a tab group, optionally add it to a parent AceGUI container.
 -- options = { parent = <AceGUI container>, tabs = { {value=..., text=...}, ... } }
 function CategoryTabs:New(options)
-    local widget = AceGUI:Create("TabGroup")
+    local widget = Functions_Ace:CreateTabGroup()
     widget:SetLayout("Fill")
     widget:SetFullHeight(true)
     widget:SetTabs(options.tabs or {})

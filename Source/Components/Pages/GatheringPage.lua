@@ -9,7 +9,6 @@ Callers create their own ScrollFrame, call AddHeader to populate the shared
 part, then keep adding profession-specific widgets (e.g. a "Recommended gear"
 section) before returning the scroll.
 -------------------------------------------------------------------------------]]
-local AceGUI = LibStub("AceGUI-3.0")
 local profession = nil
 
 GatheringPage = {}
@@ -67,7 +66,7 @@ local function BuildExpansionDropdown(onSelect, data)
     -- its default 26px-tall, no-label layout so it can sit inline with its
     -- own separate Label widget below instead.
     local DROPDOWN_WIDTH = 160
-    local dropdown = AceGUI:Create("Dropdown")
+    local dropdown = Functions_Ace:CreateDropdown()
     dropdown:SetWidth(DROPDOWN_WIDTH)
     -- AceGUI's Dropdown widget has no exported method for this - its
     -- UIDropDownMenuTemplate-based text is center-justified by default, so
@@ -83,14 +82,14 @@ local function BuildExpansionDropdown(onSelect, data)
         onSelect(level)
     end)
 
-    local label = AceGUI:Create("Label")
+    local label = Functions_Ace:CreateLabel()
     label:SetFontObject(GameFontHighlightLarge)
     label:SetText("Current Expansion Data:")
     local labelWidth = math.ceil(label.label:GetStringWidth()) + 8
     label:SetWidth(labelWidth)
 
     local totalWidth = labelWidth + DROPDOWN_WIDTH
-    local group = AceGUI:Create("SimpleGroup")
+    local group = Functions_Ace:CreateGroup()
     group:SetLayout("Flow")
     group:SetWidth(totalWidth)
     -- SimpleGroup's Flow layout reads content.width directly, which SetWidth
@@ -113,7 +112,7 @@ end
 -- of one shared region doing per-link hit-testing.
 local function AddRecommendationSegment(group, text, itemLink, iconId)
     if iconId then
-        local icon = AceGUI:Create("Label")
+        local icon = Functions_Ace:CreateLabel()
         icon:SetText("")
         icon:SetImage(iconId)
         local size = GeneralUI:GetRowTextHeight()
@@ -123,7 +122,7 @@ local function AddRecommendationSegment(group, text, itemLink, iconId)
         group:AddChild(icon)
     end
 
-    local lbl = AceGUI:Create("Label")
+    local lbl = Functions_Ace:CreateLabel()
     lbl:SetFontObject(GameFontHighlight)
     lbl:SetText(text)
     lbl:SetWidth(math.ceil(lbl.label:GetStringWidth()) + 2)
@@ -166,7 +165,7 @@ end
 -- A Flow-layout SimpleGroup that AddRecommendationSegment's calls append
 -- into left-to-right - i.e. one logical row.
 local function BuildRecommendationRow(scroll)
-    local row = AceGUI:Create("SimpleGroup")
+    local row = Functions_Ace:CreateGroup()
     row:SetLayout("Flow")
     row:SetFullWidth(true)
     row:SetAutoAdjustHeight(false)
@@ -280,7 +279,7 @@ end
 -- DataTable.lua).
 function GatheringPage:AddHeader(scroll, parent, profession, data, recommendations)
     profession = profession
-    local skillLbl = AceGUI:Create("Label")
+    local skillLbl = Functions_Ace:CreateLabel()
     skillLbl:SetFullWidth(true)
     skillLbl:SetFontObject(GameFontHighlightLarge)
 
@@ -327,7 +326,7 @@ function GatheringPage:AddHeader(scroll, parent, profession, data, recommendatio
                     break
                 end
             end
-            AceGUI:Release(tableWidget)
+            Functions_Ace:ReleaseWidget(tableWidget)
         end
         tableWidget = DataTable:Build(parent, data, selectedExpansion)
         scroll:AddChild(tableWidget, trailingSpacer)
@@ -344,13 +343,13 @@ function GatheringPage:AddHeader(scroll, parent, profession, data, recommendatio
         trailingSpacer = GeneralUI:BuildSpacer()
         scroll:AddChild(trailingSpacer)
 
-        local recommendationsLbl = AceGUI:Create("Label")
+        local recommendationsLbl = Functions_Ace:CreateLabel()
         recommendationsLbl:SetFullWidth(true)
         recommendationsLbl:SetFontObject(GameFontHighlightLarge)
         recommendationsLbl:SetText("Recommendations:")
         scroll:AddChild(recommendationsLbl)
 
-        local introLbl = AceGUI:Create("Label")
+        local introLbl = Functions_Ace:CreateLabel()
         introLbl:SetFullWidth(true)
         introLbl:SetFontObject(GameFontHighlight)
         introLbl:SetText("1) Gloves with +".. profession .." skill")

@@ -1,5 +1,3 @@
-local AceGUI = LibStub("AceGUI-3.0")
-
 TabDungeons = {}
 
 -- Build and return the inner tab group widget for the "Dungeons" page.

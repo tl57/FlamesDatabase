@@ -1,5 +1,3 @@
-local AceGUI = LibStub("AceGUI-3.0")
-
 Herbalism = {}
 
 local Recommendations = {
@@ -12,7 +10,7 @@ local Recommendations = {
 -- Build and return the content widget for the "Herbalism" page.
 -- Returns the AceGUI widget (so the page builder can return it directly).
 function Herbalism:Build(parent)
-    local scroll = AceGUI:Create("ScrollFrame")
+    local scroll = Functions_Ace:CreateScrollFrame()
     scroll:SetLayout("List")
 
     GatheringPage:AddHeader(scroll, parent, "Herbalism", HerbalismData, Recommendations)

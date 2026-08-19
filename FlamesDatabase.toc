@@ -11,6 +11,8 @@
 
 embeds.xml
 
+Source/Tools/Functions/AceFunctions.lua
+
 Source/Components/AceGUIWidget-FlamesDataTable.lua
 
 Localization/strings_en.lua
@@ -18,7 +20,6 @@ Source/Tools/Functions/General.lua
 Source/Tools/Functions/Professions.lua
 Source/Tools/Functions/GeneralUI.lua
 Source/Tools/Functions/AddOnAccess.lua
-Source/Tools/Functions/AceFunctions.lua
 Source/Tools/Functions/Quests.lua
 Source/Components/DungeonEntry.lua
 Source/Data/ChangelogData.lua

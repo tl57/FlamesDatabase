@@ -5,7 +5,7 @@ exists solely to give DataTable.lua's container its own dedicated identity.
 
 AceGUI:Create/:Release pool widgets separately per registered type name (see
 AceGUI-3.0.lua's newWidget/objPools). DataTable.lua used to build its
-container via AceGUI:Create("SimpleGroup") and pool its rows/cells as raw
+container via Functions_Ace:CreateGroup() and pool its rows/cells as raw
 frames directly onto it - "SimpleGroup" is also the type every spacer,
 DungeonInfo section, and any future plain AceGUI container in this addon
 uses, all sharing ONE pool. That let a single physical frame get handed
@@ -22,7 +22,6 @@ DataTable.lua's row/cell pooling logic is unchanged, only what creates its
 outer frame changes.
 -------------------------------------------------------------------------------]]
 local Type, Version = "FlamesDataTable", 1
-local AceGUI = LibStub("AceGUI-3.0")
 
 local methods = {
     ["OnAcquire"] = function(self)
@@ -45,7 +44,7 @@ local function Constructor()
         widget[method] = func
     end
 
-    return AceGUI:RegisterAsWidget(widget)
+    return Functions_Ace:RegisterAsWidget(widget)
 end
 
-AceGUI:RegisterWidgetType(Type, Constructor, Version)
+Functions_Ace:RegisterWidgetType(Type, Constructor, Version)

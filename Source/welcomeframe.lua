@@ -1,4 +1,3 @@
-local AceGUI = LibStub("AceGUI-3.0")
 local addonName = ...
 
 local welcome_frame = nil -- singleton: created once
@@ -13,7 +12,7 @@ function showWelcomeFrame()
 		return
 	end
 
-	welcome_frame = AceGUI:Create("Frame") ---@type AceGUIFrame
+	welcome_frame = Functions_Ace:CreateDialog() ---@type AceGUIFrame
 	welcome_frame:SetTitle(addonName)
 	local currentVersion = Functions_General:GetAddonMetadata(addonName, "Version")
 	welcome_frame:SetStatusText("Version " .. currentVersion)
@@ -21,22 +20,22 @@ function showWelcomeFrame()
 	welcome_frame:SetWidth(500)
 	welcome_frame:SetHeight(450)
 	welcome_frame:SetCallback("OnClose", function(widget)
-		AceGUI:Release(widget)
+		Functions_Ace:ReleaseWidget(widget)
 		welcome_frame = nil
 	end)
 
-	local scrollFrame = AceGUI:Create("ScrollFrame") ---@type AceGUIScrollFrame
+	local scrollFrame = Functions_Ace:CreateScrollFrame() ---@type AceGUIScrollFrame
 	scrollFrame:SetLayout("Flow")
 	welcome_frame:AddChild(scrollFrame)
 
-	local title = AceGUI:Create("Label") ---@type AceGUILabel
+	local title = Functions_Ace:CreateLabel() ---@type AceGUILabel
 	title:SetText("Welcome to FlamesDatabase!")
 	title:SetFontObject(GameFontHighlightHuge)
 	title:SetJustifyH("CENTER")
 	title:SetFullWidth(true)
 	scrollFrame:AddChild(title)
 
-	local description = AceGUI:Create("Label") ---@type AceGUILabel
+	local description = Functions_Ace:CreateLabel() ---@type AceGUILabel
 	description:SetText("FlamesDatabase provides with a lot of information that is only available out of the game, such as Mining and Herbalism skill levels and zones, or Dungeon information. Much of this information is separated by expansion.")
 	description:SetFontObject(GameFontHighlight)
 	description:SetFullWidth(true)
@@ -44,7 +43,7 @@ function showWelcomeFrame()
 
 	scrollFrame:AddChild(GeneralUI:BuildSpacer())
 
-	local featuresHeader = AceGUI:Create("Label") ---@type AceGUILabel
+	local featuresHeader = Functions_Ace:CreateLabel() ---@type AceGUILabel
 	featuresHeader:SetText("List of Features")
 	featuresHeader:SetFontObject(GameFontHighlightLarge)
 	featuresHeader:SetFullWidth(true)
@@ -60,7 +59,7 @@ function showWelcomeFrame()
 		"Open the main window with /fdb",
 	}
 	for _, text in ipairs(placeholderFeatures) do
-		local line = AceGUI:Create("Label") ---@type AceGUILabel
+		local line = Functions_Ace:CreateLabel() ---@type AceGUILabel
 		line:SetText(text)
 		line:SetFontObject(GameFontHighlight)
 		line:SetFullWidth(true)

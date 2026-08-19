@@ -1,4 +1,3 @@
-local AceGUI = LibStub("AceGUI-3.0")
 local addonName = ...
 
 local changelog_frame = nil -- singleton: created once
@@ -20,36 +19,36 @@ function showChangeLogFrame()
 	local sinceVersion = FlamesDatabase.settings and FlamesDatabase.settings.changelogVersion
 	local entries = Functions_General:GetEntriesSince(ChangelogData, sinceVersion)
 
-	changelog_frame = AceGUI:Create("Frame") ---@type AceGUIFrame
+	changelog_frame = Functions_Ace:CreateDialog() ---@type AceGUIFrame
 	changelog_frame:SetTitle(addonName)
 	changelog_frame:SetStatusText("Version " .. currentVersion)
 	changelog_frame:SetLayout("Fill")
 	changelog_frame:SetWidth(500)
 	changelog_frame:SetHeight(450)
 	changelog_frame:SetCallback("OnClose", function(widget)
-		AceGUI:Release(widget)
+		Functions_Ace:ReleaseWidget(widget)
 		changelog_frame = nil
 	end)
 
-	local scrollFrame = AceGUI:Create("ScrollFrame") ---@type AceGUIScrollFrame
+	local scrollFrame = Functions_Ace:CreateScrollFrame() ---@type AceGUIScrollFrame
 	scrollFrame:SetLayout("Flow")
 	changelog_frame:AddChild(scrollFrame)
 
 	if #entries == 0 then
-		local label = AceGUI:Create("Label") ---@type AceGUILabel
+		local label = Functions_Ace:CreateLabel() ---@type AceGUILabel
 		label:SetText("No changes to show.")
 		label:SetFullWidth(true)
 		scrollFrame:AddChild(label)
 	end
 
 	for _, entry in ipairs(entries) do
-		local versionHeading = AceGUI:Create("Heading") ---@type AceGUIHeading
+		local versionHeading = Functions_Ace:CreateHeading() ---@type AceGUIHeading
 		versionHeading:SetText("Version " .. entry.version)
 		versionHeading:SetFullWidth(true)
 		scrollFrame:AddChild(versionHeading)
 
 		for _, change in ipairs(entry.changes) do
-			local line = AceGUI:Create("Label") ---@type AceGUILabel
+			local line = Functions_Ace:CreateLabel() ---@type AceGUILabel
 			line:SetText("[" .. change.category .. "] " .. change.text)
 			line:SetFullWidth(true)
 			scrollFrame:AddChild(line)

@@ -100,8 +100,6 @@ other widget in this addon.
 
 Returns the widget, ready to be added to a page builder.
 -------------------------------------------------------------------------------]]
-local AceGUI           = LibStub("AceGUI-3.0")
-
 DataTable              = {}
 
 local ROW_HEIGHT       = 20
@@ -603,7 +601,7 @@ function DataTable:Build(parent, options, selectedExpansion)
     -- pooled rows/cells (container.rowPool/cellPool below), which are
     -- already correctly shown/hidden by AcquireRow/AcquireCell and the
     -- hide-the-excess loop at the end of this function.
-    local group = AceGUI:Create("FlamesDataTable")
+    local group = Functions_Ace:CreateDataTableWidget()
     local container = group.frame
     group:SetWidth(width)
     group:SetHeight(height)

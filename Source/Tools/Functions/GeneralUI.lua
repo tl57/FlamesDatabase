@@ -3,8 +3,6 @@ GeneralUI
 Small, generic AceGUI helpers shared across pages/components.
 -----------------------------------------------------------------------------]]
 
-local AceGUI = LibStub("AceGUI-3.0")
-
 GeneralUI = {}
 
 -- Vertical gap between sections. A SimpleGroup rather than a Label: Label
@@ -14,7 +12,7 @@ GeneralUI = {}
 -- which SetAutoAdjustHeight disables outright, leaving our explicit height
 -- alone.
 function GeneralUI:BuildSpacer()
-    local spacer = AceGUI:Create("SimpleGroup")
+    local spacer = Functions_Ace:CreateGroup()
     spacer:SetAutoAdjustHeight(false)
     spacer:SetHeight(12)
     return spacer
@@ -30,7 +28,7 @@ function GeneralUI:AddCollapsibleSection(scroll, title, buildContent)
     local expanded = false
     local contentWidget
 
-    local header = AceGUI:Create("InteractiveLabel")
+    local header = Functions_Ace:CreateInteractiveLabel()
     header:SetFullWidth(true)
     header:SetFontObject(GameFontHighlightLarge)
     header:SetText("+ " .. title)
@@ -55,7 +53,7 @@ function GeneralUI:AddCollapsibleSection(scroll, title, buildContent)
                     break
                 end
             end
-            AceGUI:Release(contentWidget)
+            Functions_Ace:ReleaseWidget(contentWidget)
             contentWidget = nil
             scroll:DoLayout()
         end
@@ -73,13 +71,13 @@ end
 -- label's measured width (the caller needs it to size the row).
 -- `dropdownWidth` defaults to `defaultWidth` if omitted.
 function GeneralUI:BuildLabeledDropdown(labelText, items, dropdownWidth, defaultWidth)
-    local label = AceGUI:Create("Label")
+    local label = Functions_Ace:CreateLabel()
     label:SetFontObject(GameFontHighlightLarge)
     label:SetText(labelText)
     local labelWidth = math.ceil(label.label:GetStringWidth()) + 8
     label:SetWidth(labelWidth)
 
-    local dropdown = AceGUI:Create("Dropdown")
+    local dropdown = Functions_Ace:CreateDropdown()
     dropdown:SetWidth(dropdownWidth or defaultWidth)
     dropdown:SetList(items)
     -- The Dropdown widget's selected-text FontString (self.text in
@@ -93,7 +91,7 @@ end
 -- Creates a bare Label widget - the common first step before any
 -- Label-specific font/text/sizing/wiring callers do themselves afterward.
 function GeneralUI:CreateLabel()
-    return AceGUI:Create("Label")
+    return Functions_Ace:CreateLabel()
 end
 
 -- The single-line pixel height of GameFontHighlight text, measured once (via
@@ -106,7 +104,7 @@ function GeneralUI:GetRowTextHeight()
         probe:SetFontObject(GameFontHighlight)
         probe:SetText("Wg")
         rowTextHeight = math.ceil(probe.label:GetStringHeight())
-        AceGUI:Release(probe)
+        Functions_Ace:ReleaseWidget(probe)
     end
     return rowTextHeight
 end
@@ -115,7 +113,7 @@ end
 -- one if needed), reset to a blank state. `content.rowsUsed` must be reset
 -- to 0 at the start of a build - the caller then places/fills each returned
 -- FontString itself. `content` (a SimpleGroup's own .content frame) is
--- recycled across AceGUI:Release/:Create cycles (e.g. every time a section
+-- recycled across Functions_Ace:ReleaseWidget/:CreateGroup cycles (e.g. every time a section
 -- is collapsed/expanded or its tab is revisited), so creating a fresh
 -- FontString on every build (as an earlier version of DungeonInfo.lua did)
 -- left old rows permanently attached and unhidden, accumulating one full

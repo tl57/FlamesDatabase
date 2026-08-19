@@ -9,8 +9,6 @@ files (DungeonQuestData.lua) hold plain name/minLvl/maxLvl/columns/rows
 tables, this just displays them.
 -----------------------------------------------------------------------------]]
 
-local AceGUI = LibStub("AceGUI-3.0")
-
 DungeonEntry = {}
 
 -- Row height for every dungeon's quest table (DataTable's default 20px is
@@ -43,13 +41,13 @@ end
 -- `dungeon`, wrapped in one List-layout group so callers can add/remove/
 -- release it as a single widget.
 local function BuildDungeonContent(parent, dungeon, filter)
-    local group = AceGUI:Create("SimpleGroup")
+    local group = Functions_Ace:CreateGroup()
     group:SetLayout("List")
     group:SetFullWidth(true)
 
     group:AddChild(GeneralUI:BuildSpacer())
 
-    local levelLabel = AceGUI:Create("Label")
+    local levelLabel = Functions_Ace:CreateLabel()
     levelLabel:SetFullWidth(true)
     levelLabel:SetFontObject(GameFontHighlight)
     levelLabel:SetText(("Appropriate levels: %s-%s"):format(dungeon.minLvl, dungeon.maxLvl))
@@ -99,7 +97,7 @@ function DungeonEntry:Build(scroll, parent, dungeons)
                     break
                 end
             end
-            AceGUI:Release(contentWidget)
+            Functions_Ace:ReleaseWidget(contentWidget)
         end
         local dungeon = dungeons[selectedDungeonIndex]
         local filter = QuestFilters[selectedFilterIndex]
@@ -190,11 +188,11 @@ function DungeonEntry:Build(scroll, parent, dungeons)
     -- empty, fixed-width Flow child, since Flow itself adds no spacing
     -- between children.
     local PAIR_SPACING = 20
-    local spacer = AceGUI:Create("Label")
+    local spacer = Functions_Ace:CreateLabel()
     spacer:SetText("")
     spacer:SetWidth(PAIR_SPACING)
 
-    local row = AceGUI:Create("SimpleGroup")
+    local row = Functions_Ace:CreateGroup()
     row:SetLayout("Flow")
     local totalWidth = filterLabelWidth + FILTER_DROPDOWN_WIDTH + PAIR_SPACING + dungeonLabelWidth + DUNGEON_DROPDOWN_WIDTH
     row:SetWidth(totalWidth)
