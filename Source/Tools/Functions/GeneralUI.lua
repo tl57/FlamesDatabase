@@ -146,3 +146,70 @@ function GeneralUI:AddDungeonInfoRow(content, text, yOffset, rowHeight)
     fontString:SetText(text)
     return yOffset + rowHeight
 end
+
+-- Resolves `itemId` asynchronously and, once loaded, turns `cell` into an
+-- icon + item-link-aware cell: shows the item's icon (sized/offset by
+-- `padding`/`iconTextGap`) to the left of the text, and wires
+-- GameTooltip:SetHyperlink on hover and ChatEdit_InsertLink on shift-click.
+-- `displayText`, if given, is shown as the cell's text once the item loads
+-- instead of the item's own link text (e.g. so a caller's own "Copper"
+-- keeps showing instead of switching to the item's real link label). Leave
+-- nil to show the raw item link text. `cell` must expose `.icon` (a
+-- Texture) and `.text` (a FontString), and support EnableMouse/SetScript
+-- (i.e. be a real Frame) - see DataTable.lua's AcquireCell for the pooled
+-- cell shape this was written against.
+--
+-- GetItemInfo/GetItemLink can return nothing on the very first query for an
+-- item the client hasn't cached yet, so ContinueOnItemLoad's callback fires
+-- immediately if already cached, or once the data arrives otherwise. Cells
+-- are commonly pooled/reused across rebuilds, so `cell.pendingItemId` guards
+-- against a delayed callback overwriting a cell that's since been recycled
+-- for something unrelated - callers that reuse cells should reset
+-- `cell.pendingItemId = nil` on reacquire, same as DataTable.lua's
+-- AcquireCell.
+--
+-- An itemId this client's item database doesn't recognize at all (e.g. a
+-- TBC-only item shown while running on the Classic Era client) doesn't fail
+-- gracefully - ContinueOnItemLoad throws deep inside Blizzard's own async
+-- callback system ("table index is nil" in Blizzard_ObjectAPI's
+-- GetOrCreateCallbacks) instead of just not calling back. pcall keeps that
+-- from surfacing as a visible Lua error; the cell just keeps its plain
+-- displayText with no icon/tooltip in that case.
+function GeneralUI:WireItemCell(cell, itemId, displayText, padding, iconTextGap)
+    cell.pendingItemId = itemId
+
+    local item = Item:CreateFromItemID(itemId)
+    if item:IsItemEmpty() then
+        return
+    end
+
+    pcall(item.ContinueOnItemLoad, item, function()
+        if cell.pendingItemId ~= itemId then
+            return
+        end
+        local itemLink = item:GetItemLink()
+
+        cell.icon:SetTexture(item:GetItemIcon())
+        cell.icon:SetPoint("LEFT", padding, 0)
+        cell.icon:Show()
+        cell.text:ClearAllPoints()
+        cell.text:SetPoint("LEFT", cell.icon, "RIGHT", iconTextGap, 0)
+        cell.text:SetPoint("RIGHT", -padding, 0)
+        cell.text:SetText(displayText or itemLink)
+
+        cell:EnableMouse(true)
+        cell:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetHyperlink(itemLink)
+            GameTooltip:Show()
+        end)
+        cell:SetScript("OnLeave", function()
+            GameTooltip:Hide()
+        end)
+        cell:SetScript("OnMouseUp", function()
+            if IsModifiedClick("CHATLINK") then
+                ChatEdit_InsertLink(itemLink)
+            end
+        end)
+    end)
+end

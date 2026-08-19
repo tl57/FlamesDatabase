@@ -51,7 +51,7 @@ GameTooltip, nothing otherwise (see AcquireInfoIcon).
 
 If a row has an `ItemLinkId` (an itemID, not part of `columns`), the Name
 column shows that item's icon and gets tooltip/shift-click-to-chat behavior,
-while still displaying the row's own Name text (see WireItemCell).
+while still displaying the row's own Name text (see GeneralUI:WireItemCell).
 
 If a row has a `QuestLinkId` (a questID, not part of `columns`) instead, the
 Name column gets the same tooltip/shift-click-to-chat behavior wired to a
@@ -332,79 +332,16 @@ local function LayoutCell(cell, width, height, skipTop, skipLeft)
     cell.edgeRight:SetWidth(t)
 end
 
--- Resolves `itemId` asynchronously and, once loaded, turns `cell` into an
--- icon + item-link-aware cell: shows the item's icon to the left of the
--- text, and wires GameTooltip:SetHyperlink on hover and ChatEdit_InsertLink
--- on shift-click. `displayText`, if given, is shown as the cell's text once
--- the item loads instead of the item's own link text (used by the Name
--- column to keep showing the row's custom Name string, e.g. "Copper",
--- rather than the item's real link label). Leave nil to show the raw item
--- link text.
---
--- GetItemInfo/GetItemLink can return nothing on the very first query for an
--- item the client hasn't cached yet, so ContinueOnItemLoad's callback fires
--- immediately if already cached, or once the data arrives otherwise. Cells
--- are pooled/reused across rebuilds (switching tabs/expansions), so
--- cell.pendingItemId guards against a delayed callback overwriting a cell
--- that's since been recycled for something unrelated.
---
--- An itemId this client's item database doesn't recognize at all (e.g. a
--- TBC-only item shown while running on the Classic Era client, now that the
--- expansion dropdown offers TBC there too) doesn't fail gracefully -
--- ContinueOnItemLoad throws deep inside Blizzard's own async callback
--- system ("table index is nil" in Blizzard_ObjectAPI's GetOrCreateCallbacks)
--- instead of just not calling back. pcall keeps that from surfacing as a
--- visible Lua error; the cell just keeps its plain displayText with no
--- icon/tooltip in that case, same as a row with no ItemLinkId at all.
-local function WireItemCell(cell, itemId, displayText)
-    cell.pendingItemId = itemId
-
-    local item = Item:CreateFromItemID(itemId)
-    if item:IsItemEmpty() then
-        return
-    end
-
-    pcall(item.ContinueOnItemLoad, item, function()
-        if cell.pendingItemId ~= itemId then
-            return
-        end
-        local itemLink = item:GetItemLink()
-
-        cell.icon:SetTexture(item:GetItemIcon())
-        cell.icon:SetPoint("LEFT", PADDING, 0)
-        cell.icon:Show()
-        cell.text:ClearAllPoints()
-        cell.text:SetPoint("LEFT", cell.icon, "RIGHT", ICON_TEXT_GAP, 0)
-        cell.text:SetPoint("RIGHT", -PADDING, 0)
-        cell.text:SetText(displayText or itemLink)
-
-        cell:EnableMouse(true)
-        cell:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetHyperlink(itemLink)
-            GameTooltip:Show()
-        end)
-        cell:SetScript("OnLeave", function()
-            GameTooltip:Hide()
-        end)
-        cell:SetScript("OnMouseUp", function()
-            if IsModifiedClick("CHATLINK") then
-                ChatEdit_InsertLink(itemLink)
-            end
-        end)
-    end)
-end
-
 -- Resolves `questId` into a real quest hyperlink where possible (falls back
 -- to a manually-built "quest:id:level" link, in the same hyperlink format,
 -- if the client doesn't have the quest's title cached yet), and turns `cell`
 -- into a link-aware cell: wires GameTooltip:SetHyperlink on hover and
 -- ChatEdit_InsertLink on shift-click - the quest-link counterpart to
--- WireItemCell above. Unlike items, a quest's link text resolves
+-- GeneralUI:WireItemCell above. Unlike items, a quest's link text resolves
 -- synchronously (no item cache / ContinueOnItemLoad-style async load to wait
 -- on), so this wires everything up immediately rather than deferring to a
 -- callback. `displayText`, if given, is shown instead of the link's own
--- bracketed title text (mirrors WireItemCell's `displayText`).
+-- bracketed title text (mirrors GeneralUI:WireItemCell's `displayText`).
 local function WireQuestCell(cell, questId, level, displayText)
     local questLink = (GetQuestLink and GetQuestLink(questId))
         or ("|cffffff00|Hquest:%d:%d|h[%s]|h|r"):format(questId, level or 0, displayText or ("Quest " .. questId))
@@ -471,7 +408,7 @@ local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
             -- the item's/quest's own link text), and keep the skill-diff
             -- tint. When this row also has an ItemLinkId, additionally show
             -- that item's icon and wire up tooltip/shift-click-to-chat via
-            -- WireItemCell, pinning `value` as the text so it keeps reading
+            -- GeneralUI:WireItemCell, pinning `value` as the text so it keeps reading
             -- e.g. "Copper" instead of switching to the item's own link
             -- label once loaded. QuestLinkId is the same idea for a quest
             -- hyperlink instead (see WireQuestCell) - mutually exclusive
@@ -482,7 +419,7 @@ local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
                 cell.text:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
             end
             if row.ItemLinkId then
-                WireItemCell(cell, row.ItemLinkId, text)
+                GeneralUI:WireItemCell(cell, row.ItemLinkId, text, PADDING, ICON_TEXT_GAP)
             elseif row.QuestLinkId then
                 WireQuestCell(cell, row.QuestLinkId, row.QuestLevel, text)
             end
