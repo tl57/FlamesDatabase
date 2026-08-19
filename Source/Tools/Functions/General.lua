@@ -98,3 +98,20 @@ end
 function Functions_General:InlineIcon(texturePath, size)
     return ("|T%s:%d|t"):format(texturePath, size or 14)
 end
+
+-- Returns `entries` (an array of { version = ..., changes = ... } tables,
+-- newest first) filtered down to those newer than `sinceVersion`. With no
+-- sinceVersion (e.g. corrupted settings), every entry is returned.
+function Functions_General:GetEntriesSince(entries, sinceVersion)
+    if not sinceVersion then
+        return entries
+    end
+
+    local filtered = {}
+    for _, entry in ipairs(entries) do
+        if self:CompareVersions(entry.version, sinceVersion) > 0 then
+            table.insert(filtered, entry)
+        end
+    end
+    return filtered
+end

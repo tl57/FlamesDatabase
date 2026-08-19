@@ -3,22 +3,6 @@ local addonName = ...
 
 local changelog_frame = nil -- singleton: created once
 
--- Returns ChangelogData entries newer than sinceVersion (newest first).
--- With no sinceVersion (e.g. corrupted settings), everything is shown.
-local function GetEntriesSince(sinceVersion)
-	if not sinceVersion then
-		return ChangelogData
-	end
-
-	local entries = {}
-	for _, entry in ipairs(ChangelogData) do
-		if Functions_General:CompareVersions(entry.version, sinceVersion) > 0 then
-			table.insert(entries, entry)
-		end
-	end
-	return entries
-end
-
 function showChangeLogFrame()
 	if changelog_frame then
 		if changelog_frame.frame:IsShown() then
@@ -34,7 +18,7 @@ function showChangeLogFrame()
 	-- was on before this update at this point - main.lua only overwrites it
 	-- with currentVersion after showChangeLogFrame() returns.
 	local sinceVersion = FlamesDatabase.settings and FlamesDatabase.settings.changelogVersion
-	local entries = GetEntriesSince(sinceVersion)
+	local entries = Functions_General:GetEntriesSince(ChangelogData, sinceVersion)
 
 	changelog_frame = AceGUI:Create("Frame") ---@type AceGUIFrame
 	changelog_frame:SetTitle(addonName)
