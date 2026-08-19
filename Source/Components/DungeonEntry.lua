@@ -61,31 +61,6 @@ local function BuildDungeonContent(parent, dungeon, filter)
     return group
 end
 
--- Create a Label + Dropdown pair (not yet attached to anything - the caller
--- adds both to its own row once every pair's width is known). A plain Label
--- beside the control (mirrors GatheringPage.lua's BuildExpansionRadioGroup)
--- rather than Dropdown's own SetLabel, which stacks the label above the
--- control instead of beside it. Returns the label, the dropdown, and the
--- label's measured width (the caller needs it to size the row).
--- `dropdownWidth` defaults to DROPDOWN_WIDTH if omitted.
-local function BuildLabeledDropdown(labelText, items, dropdownWidth)
-    local label = AceGUI:Create("Label")
-    label:SetFontObject(GameFontHighlightLarge)
-    label:SetText(labelText)
-    local labelWidth = math.ceil(label.label:GetStringWidth()) + 8
-    label:SetWidth(labelWidth)
-
-    local dropdown = AceGUI:Create("Dropdown")
-    dropdown:SetWidth(dropdownWidth or DROPDOWN_WIDTH)
-    dropdown:SetList(items)
-    -- The Dropdown widget's selected-text FontString (self.text in
-    -- AceGUIWidget-DropDown.lua) inherits UIDropDownMenuTemplate's default
-    -- CENTER justify; left-align it to match every other label in this addon.
-    dropdown.text:SetJustifyH("LEFT")
-
-    return label, dropdown, labelWidth
-end
-
 -- Add the Dungeon + Filter by Dropdowns to `scroll`, followed by the
 -- selected dungeon's level line + (filtered) quest table. Changing either
 -- dropdown releases the old content widget and builds a fresh one in its
@@ -175,7 +150,7 @@ function DungeonEntry:Build(scroll, parent, dungeons)
     -- fractional value like 250*2/3 here risks drifting out of sync with
     -- that and wrapping a later sibling onto its own row.
     local DUNGEON_DROPDOWN_WIDTH = math.floor(DROPDOWN_WIDTH * 2 / 3)
-    local dungeonLabel, dungeonDropdown, dungeonLabelWidth = BuildLabeledDropdown("Dungeon:", names, DUNGEON_DROPDOWN_WIDTH)
+    local dungeonLabel, dungeonDropdown, dungeonLabelWidth = GeneralUI:BuildLabeledDropdown("Dungeon:", names, DUNGEON_DROPDOWN_WIDTH, DROPDOWN_WIDTH)
     dungeonDropdown:SetCallback("OnValueChanged", function(_, _, index)
         selectedDungeonIndex = index
         RebuildContent()
@@ -204,7 +179,7 @@ function DungeonEntry:Build(scroll, parent, dungeons)
     end
 
     local FILTER_DROPDOWN_WIDTH = DROPDOWN_WIDTH / 2
-    local filterLabel, filterDropdown, filterLabelWidth = BuildLabeledDropdown("Filter by:", filterNames, FILTER_DROPDOWN_WIDTH)
+    local filterLabel, filterDropdown, filterLabelWidth = GeneralUI:BuildLabeledDropdown("Filter by:", filterNames, FILTER_DROPDOWN_WIDTH, DROPDOWN_WIDTH)
     filterDropdown:SetCallback("OnValueChanged", function(_, _, index)
         selectedFilterIndex = index
         UpdateDungeonAvailability()

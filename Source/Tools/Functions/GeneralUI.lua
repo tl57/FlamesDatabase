@@ -64,3 +64,28 @@ function GeneralUI:AddCollapsibleSection(scroll, title, buildContent)
     scroll:AddChild(header)
     scroll:AddChild(spacer)
 end
+
+-- Create a Label + Dropdown pair (not yet attached to anything - the caller
+-- adds both to its own row once every pair's width is known). A plain Label
+-- beside the control (mirrors GatheringPage.lua's BuildExpansionRadioGroup)
+-- rather than Dropdown's own SetLabel, which stacks the label above the
+-- control instead of beside it. Returns the label, the dropdown, and the
+-- label's measured width (the caller needs it to size the row).
+-- `dropdownWidth` defaults to `defaultWidth` if omitted.
+function GeneralUI:BuildLabeledDropdown(labelText, items, dropdownWidth, defaultWidth)
+    local label = AceGUI:Create("Label")
+    label:SetFontObject(GameFontHighlightLarge)
+    label:SetText(labelText)
+    local labelWidth = math.ceil(label.label:GetStringWidth()) + 8
+    label:SetWidth(labelWidth)
+
+    local dropdown = AceGUI:Create("Dropdown")
+    dropdown:SetWidth(dropdownWidth or defaultWidth)
+    dropdown:SetList(items)
+    -- The Dropdown widget's selected-text FontString (self.text in
+    -- AceGUIWidget-DropDown.lua) inherits UIDropDownMenuTemplate's default
+    -- CENTER justify; left-align it to match every other label in this addon.
+    dropdown.text:SetJustifyH("LEFT")
+
+    return label, dropdown, labelWidth
+end
