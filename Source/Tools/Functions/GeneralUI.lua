@@ -110,3 +110,28 @@ function GeneralUI:GetRowTextHeight()
     end
     return rowTextHeight
 end
+
+-- Returns the next reusable FontString from `content`'s row pool (creating
+-- one if needed), reset to a blank state. `content.rowsUsed` must be reset
+-- to 0 at the start of a build - the caller then places/fills each returned
+-- FontString itself. `content` (a SimpleGroup's own .content frame) is
+-- recycled across AceGUI:Release/:Create cycles (e.g. every time a section
+-- is collapsed/expanded or its tab is revisited), so creating a fresh
+-- FontString on every build (as an earlier version of DungeonInfo.lua did)
+-- left old rows permanently attached and unhidden, accumulating one full
+-- extra set on every rebuild. Mirrors DataTable.lua's AcquireRow/AcquireCell.
+function GeneralUI:AcquireInfoRow(content)
+    content.rowPool = content.rowPool or {}
+    content.rowsUsed = content.rowsUsed + 1
+    local n = content.rowsUsed
+
+    local fontString = content.rowPool[n]
+    if not fontString then
+        fontString = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        fontString:SetJustifyH("LEFT")
+        content.rowPool[n] = fontString
+    end
+
+    fontString:Show()
+    return fontString
+end
