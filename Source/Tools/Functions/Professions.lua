@@ -82,3 +82,28 @@ function Functions_Professions:GetProfessionShouldGoLearn(currentskill, currentM
 
     return currentMaxSkill - currentskill <= 25 and meetsLevelRequirement
 end
+
+-- Text colors for a numeric cell, based on (playerSkill - cellValue).
+-- .Grey is also exposed directly (rather than kept a private constant) for
+-- callers that need the same "no data" grey outside of a diff, e.g.
+-- DataTable.lua's BuildRow when a row has no other column with a number.
+local SKILL_DIFF_RED    = { 0.90, 0.15, 0.15 }
+local SKILL_DIFF_ORANGE = { 0.90, 0.55, 0.15 }
+local SKILL_DIFF_YELLOW = { 0.85, 0.85, 0.15 }
+local SKILL_DIFF_GREEN  = { 0.35, 0.75, 0.35 }
+Functions_Professions.SkillDiffGreyColor = { 0.60, 0.60, 0.60 }
+
+-- diff < 0: red. 0-25: orange. 26-50: yellow. 51-75: green. 100+: grey.
+function Functions_Professions:GetSkillDiffColor(diff)
+    if diff < 0 then
+        return SKILL_DIFF_RED
+    elseif diff <= 25 then
+        return SKILL_DIFF_ORANGE
+    elseif diff <= 50 then
+        return SKILL_DIFF_YELLOW
+    elseif diff <= 100 then
+        return SKILL_DIFF_GREEN
+    else
+        return self.SkillDiffGreyColor
+    end
+end

@@ -138,28 +138,6 @@ local CELL_BACKGROUND_COLORS = {
     grey   = { 0.55, 0.55, 0.55 },
 }
 
--- Text colors for a numeric cell, based on (playerSkill - cellValue).
-local SKILL_DIFF_RED    = { 0.90, 0.15, 0.15 }
-local SKILL_DIFF_ORANGE = { 0.90, 0.55, 0.15 }
-local SKILL_DIFF_YELLOW = { 0.85, 0.85, 0.15 }
-local SKILL_DIFF_GREEN  = { 0.35, 0.75, 0.35 }
-local SKILL_DIFF_GREY   = { 0.60, 0.60, 0.60 }
-
--- diff < 0: red. 0-25: orange. 26-50: yellow. 51-75: green. 100+: grey.
-local function SkillDiffColor(diff)
-    if diff < 0 then
-        return SKILL_DIFF_RED
-    elseif diff <= 25 then
-        return SKILL_DIFF_ORANGE
-    elseif diff <= 50 then
-        return SKILL_DIFF_YELLOW
-    elseif diff <= 100 then
-        return SKILL_DIFF_GREEN
-    else
-        return SKILL_DIFF_GREY
-    end
-end
-
 -- Returns the next reusable plain wrapper frame from `container`'s row pool
 -- (creating one if the pool doesn't have enough yet), parented under `parent`
 -- and reset to a blank state. Used for the header row and each data row.
@@ -392,7 +370,7 @@ local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
                 break
             end
         end
-        nameColor = firstValue and SkillDiffColor(skill - firstValue) or SKILL_DIFF_GREY
+        nameColor = firstValue and Functions_Professions:GetSkillDiffColor(skill - firstValue) or Functions_Professions.SkillDiffGreyColor
     end
 
     for i, col in ipairs(columns) do
