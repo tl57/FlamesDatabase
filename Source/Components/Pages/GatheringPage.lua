@@ -111,29 +111,12 @@ end
 -- single-FontString-with-embedded-links approach relied on, and it doesn't
 -- exist here), so each item link needs its own mouse-enabled widget instead
 -- of one shared region doing per-link hit-testing.
--- The single-line height of GameFontHighlight text, measured once and
--- reused for every recommendation row/segment - matches introLbl/skillLbl/
--- recommendationsLbl's own natural (unforced) Label height exactly, instead
--- of guessing at a constant that ends up taller than the actual glyphs and
--- reads as extra vertical space between rows.
-local ROW_TEXT_HEIGHT
-local function GetRowTextHeight()
-    if not ROW_TEXT_HEIGHT then
-        local probe = AceGUI:Create("Label")
-        probe:SetFontObject(GameFontHighlight)
-        probe:SetText("Wg")
-        ROW_TEXT_HEIGHT = math.ceil(probe.label:GetStringHeight())
-        AceGUI:Release(probe)
-    end
-    return ROW_TEXT_HEIGHT
-end
-
 local function AddRecommendationSegment(group, text, itemLink, iconId)
     if iconId then
         local icon = AceGUI:Create("Label")
         icon:SetText("")
         icon:SetImage(iconId)
-        local size = GetRowTextHeight()
+        local size = GeneralUI:GetRowTextHeight()
         icon:SetImageSize(size, size)
         icon:SetWidth(size)
         icon:SetHeight(size)
@@ -144,7 +127,7 @@ local function AddRecommendationSegment(group, text, itemLink, iconId)
     lbl:SetFontObject(GameFontHighlight)
     lbl:SetText(text)
     lbl:SetWidth(math.ceil(lbl.label:GetStringWidth()) + 2)
-    lbl:SetHeight(GetRowTextHeight())
+    lbl:SetHeight(GeneralUI:GetRowTextHeight())
 
     if itemLink then
         lbl.frame:EnableMouse(true)
@@ -187,7 +170,7 @@ local function BuildRecommendationRow(scroll)
     row:SetLayout("Flow")
     row:SetFullWidth(true)
     row:SetAutoAdjustHeight(false)
-    row:SetHeight(GetRowTextHeight())
+    row:SetHeight(GeneralUI:GetRowTextHeight())
     scroll:AddChild(row)
     return row
 end

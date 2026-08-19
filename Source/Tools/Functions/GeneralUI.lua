@@ -89,3 +89,24 @@ function GeneralUI:BuildLabeledDropdown(labelText, items, dropdownWidth, default
 
     return label, dropdown, labelWidth
 end
+
+-- Creates a bare Label widget - the common first step before any
+-- Label-specific font/text/sizing/wiring callers do themselves afterward.
+function GeneralUI:CreateLabel()
+    return AceGUI:Create("Label")
+end
+
+-- The single-line pixel height of GameFontHighlight text, measured once (via
+-- a probe Label) and cached for every later call - lets callers size rows to
+-- match real glyph height instead of guessing at a constant.
+local rowTextHeight
+function GeneralUI:GetRowTextHeight()
+    if not rowTextHeight then
+        local probe = self:CreateLabel()
+        probe:SetFontObject(GameFontHighlight)
+        probe:SetText("Wg")
+        rowTextHeight = math.ceil(probe.label:GetStringHeight())
+        AceGUI:Release(probe)
+    end
+    return rowTextHeight
+end
