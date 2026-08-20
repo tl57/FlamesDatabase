@@ -1,10 +1,5 @@
 DungeonInfo = {}
 
-local Dungeons = {
-    RagefireChasmInfo,
-    DeadminesInfo,
-}
-
 local ROW_HEIGHT = 14
 
 local INFO_CONTENT_WIDTH = 700
@@ -83,7 +78,7 @@ function DungeonInfo:Build(parent)
     scroll:SetLayout("List")
 
     local names = {}
-    for i, dungeon in ipairs(Dungeons) do
+    for i, dungeon in ipairs(DungeonInfoData) do
         names[i] = dungeon.name
     end
 
@@ -101,7 +96,7 @@ function DungeonInfo:Build(parent)
             end
             Functions_Ace:ReleaseWidget(contentWidget)
         end
-        contentWidget = BuildInfoContent(Dungeons[index])
+        contentWidget = BuildInfoContent(DungeonInfoData[index])
         scroll:AddChild(contentWidget)
     end
 
