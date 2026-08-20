@@ -1,11 +1,15 @@
 # Changelog
+## v0.7.0
+### Added
+- Finished Dungeon Quest Info
+
 ## v0.6.1
 ### Fixed
 - Fixed Quest Link id
 
 ## v0.6.0
 ### Added
-- Finished Quest Info
+- Finished Dungeon Info
 
 ## v0.5.0
 ### Added
