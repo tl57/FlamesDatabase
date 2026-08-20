@@ -135,12 +135,12 @@ function GeneralUI:AcquireInfoRow(content)
 end
 
 -- Add a row showing `text` to `content` (a SimpleGroup's .content frame) at
--- `yOffset`, sized to `rowHeight`. Returns yOffset + rowHeight, for the next
--- row.
-function GeneralUI:AddDungeonInfoRow(content, text, yOffset, rowHeight)
+-- `yOffset`, indented by `xOffset` (defaults to 0), sized to `rowHeight`.
+-- Returns yOffset + rowHeight, for the next row.
+function GeneralUI:AddDungeonInfoRow(content, text, yOffset, rowHeight, xOffset)
     local fontString = self:AcquireInfoRow(content)
     fontString:ClearAllPoints()
-    fontString:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -yOffset)
+    fontString:SetPoint("TOPLEFT", content, "TOPLEFT", xOffset or 0, -yOffset)
     fontString:SetText(text)
     return yOffset + rowHeight
 end

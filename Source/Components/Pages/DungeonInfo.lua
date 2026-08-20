@@ -2,6 +2,21 @@ DungeonInfo = {}
 
 local ROW_HEIGHT = 14
 
+-- Extra gap after each top-level header row (Zone ID, Mob Levels, Boss
+-- Levels), so they read as distinct sections rather than a single block.
+local HEADER_SPACING = 4
+
+-- Boss-row left margins (see BuildInfoContent): bosses without a wing are
+-- indented once; bosses grouped under a wing header are indented one level
+-- deeper than the wing header itself.
+local NO_WING_INDENT = 20
+local WING_INDENT = 20
+local BOSS_INDENT = 40
+
+-- Text colors for BuildInfoContent's section/wing headers (see ColorizeText).
+local HEADER_COLOR = { 1, 1, 0 }
+local WING_COLOR = { 0, 1, 0 }
+
 local INFO_CONTENT_WIDTH = 700
 
 -- Build and return the content widget (zone id, mob levels, one row per
@@ -37,12 +52,30 @@ local function BuildInfoContent(dungeon)
     -- Rows are positioned relative to `content`'s top, so the first one
     -- starts below the spacer rather than at y=0.
     local y = spacer.frame.height
-    y = GeneralUI:AddDungeonInfoRow(content, ("Zone ID: %s"):format(dungeon.zoneid or "?"), y, ROW_HEIGHT)
-    y = GeneralUI:AddDungeonInfoRow(content, ("Mob Levels: %s-%s"):format(dungeon.minMobLevel or "?", dungeon.maxMobLevel or "?"), y, ROW_HEIGHT)
+    local zoneIdHeader = Functions_General:ColorizeText("Zone ID:", HEADER_COLOR)
+    local mobLevelsHeader = Functions_General:ColorizeText("Mob Levels:", HEADER_COLOR)
+    local bossLevelsHeader = Functions_General:ColorizeText("Boss Levels:", HEADER_COLOR)
 
-    y = GeneralUI:AddDungeonInfoRow(content, "Boss Levels:", y, ROW_HEIGHT)
+    y = GeneralUI:AddDungeonInfoRow(content, ("%s %s"):format(zoneIdHeader, dungeon.zoneid or "?"), y, ROW_HEIGHT) + HEADER_SPACING
+    y = GeneralUI:AddDungeonInfoRow(content, ("%s %s-%s"):format(mobLevelsHeader, dungeon.minMobLevel or "?", dungeon.maxMobLevel or "?"), y, ROW_HEIGHT) + HEADER_SPACING
+
+    y = GeneralUI:AddDungeonInfoRow(content, bossLevelsHeader, y, ROW_HEIGHT)
+    -- Bosses with a `wing` field get a WING_INDENT header whenever the wing
+    -- changes, with bosses under it at BOSS_INDENT; wing entries are assumed
+    -- contiguous, in DungeonInfoData's own order. Bosses without a `wing`
+    -- are listed flat at NO_WING_INDENT.
+    local currentWing = nil
     for _, boss in ipairs(dungeon.bosses or {}) do
-        y = GeneralUI:AddDungeonInfoRow(content, ("%s: %s"):format(boss.name, boss.level), y, ROW_HEIGHT)
+        if boss.wing then
+            if boss.wing ~= currentWing then
+                currentWing = boss.wing
+                local wingHeader = Functions_General:ColorizeText(("%s:"):format(boss.wing), WING_COLOR)
+                y = GeneralUI:AddDungeonInfoRow(content, wingHeader, y, ROW_HEIGHT, WING_INDENT)
+            end
+            y = GeneralUI:AddDungeonInfoRow(content, ("%s: %s"):format(boss.name, boss.level), y, ROW_HEIGHT, BOSS_INDENT)
+        else
+            y = GeneralUI:AddDungeonInfoRow(content, ("%s: %s"):format(boss.name, boss.level), y, ROW_HEIGHT, NO_WING_INDENT)
+        end
     end
 
     -- Hide any pooled rows left over from a build with more rows than this
