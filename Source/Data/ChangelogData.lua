@@ -4,6 +4,12 @@
 
 ChangelogData = {
     {
+        version = "0.6.0",
+        changes = {
+            { category = "Added", text = "Finished Dungeon Info." },
+        },
+    },
+    {
         version = "0.5.0",
         changes = {
             { category = "Added", text = "Dungeon Quests now show progress status" },

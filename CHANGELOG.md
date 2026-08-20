@@ -1,4 +1,8 @@
 # Changelog
+## v0.6.0
+### Added
+- Finished Quest Info
+
 ## v0.5.0
 ### Added
 - Dungeon Quests now show progress status
