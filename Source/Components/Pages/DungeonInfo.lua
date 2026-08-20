@@ -99,7 +99,9 @@ local function BuildInfoContent(dungeon)
     return group
 end
 
-local DROPDOWN_WIDTH = 250
+-- Matches DungeonEntry.lua's DUNGEON_DROPDOWN_WIDTH (its own dungeon-picker
+-- dropdown, floor(250 * 2 / 3)), so both pages' dungeon dropdowns look alike.
+local DROPDOWN_WIDTH = 166
 
 -- Build and return the content widget for the "Dungeon Info" page: a
 -- dungeon-picker Dropdown (see DungeonEntry.lua's identical pattern)
