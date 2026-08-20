@@ -490,7 +490,7 @@ DungeonQuestData = {
         rows    = {
             {
                 Name        = "Knowledge in the Deeps",
-                QuestLinkId = 871,
+                QuestLinkId = 971,
                 QuestLevel  = 23,
                 Level       = 10,
                 Faction     = "Alliance",

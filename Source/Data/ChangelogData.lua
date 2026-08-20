@@ -4,6 +4,12 @@
 
 ChangelogData = {
     {
+        version = "0.6.1",
+        changes = {
+            { category = "Fixed", text = "Fixed Quest Link refs." },
+        },
+    },
+    {
         version = "0.6.0",
         changes = {
             { category = "Added", text = "Finished Dungeon Info." },

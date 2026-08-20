@@ -1,4 +1,8 @@
 # Changelog
+## v0.6.1
+### Fixed
+- Fixed Quest Link id
+
 ## v0.6.0
 ### Added
 - Finished Quest Info
