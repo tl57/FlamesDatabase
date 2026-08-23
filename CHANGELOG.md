@@ -1,4 +1,10 @@
 # Changelog
+## v0.8.0
+### Added
+- Added Prospecting Info
+### Changed
+- Moved Expansion dropdown to Main Window Info
+
 ## v0.7.0
 ### Added
 - Finished Dungeon Quest Info

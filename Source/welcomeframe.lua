@@ -52,6 +52,7 @@ function showWelcomeFrame()
 	local placeholderFeatures = {
 		"Mining skill levels, zones and item links.",
 		"Herbalism skill levels, zones and item links.",
+		"Prospecting skill levels, gem chances and item links.",
 		"Filter gathering profession information by Expansion.",
 		"Dungeon information such as Mob, Boss and their levels",
 		"Dungeon Quest information such as NPC, Quest Link, Quest Status, Faction/Class and Notes.",
