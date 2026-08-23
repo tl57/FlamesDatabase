@@ -13,97 +13,6 @@ local profession = nil
 
 GatheringPage = {}
 
--- A label followed by a dropdown, on the same row, offering one option per
--- expansion `data` actually has columns for, with the one matching the
--- realm's current expansion pre-selected. Uses AceGUI's own Dropdown widget
--- instead of hand-built radio buttons, so there's no per-option width
--- budgeting or exclusivity handling to get wrong - the row always has
--- exactly two fixed-width children (the label, the dropdown) no matter how
--- many expansions end up in the dropdown's list. `onSelect(level)` fires
--- whenever the user picks a different option (not for the initial
--- pre-selection - the caller already gets that back as the second return
--- value).
--- Returns the group widget and the initially selected level.
-local function BuildExpansionDropdown(onSelect, data)
-    local currentLevel = Functions_General:GetServerExpansionLevel()
-
-    -- Cap the offered expansions at what `data.columns` actually has data
-    -- for (i.e. the highest `col.exp` present), not at what the client
-    -- currently running this addon happens to support - those are different
-    -- things: Functions_General:GetHighestSupportedExpansion reflects the
-    -- .toc's declared game-version compatibility (e.g. it reports Classic
-    -- while running on the Classic Era client even if the .toc also lists
-    -- TBC, since that's the closest match to *this* client), whereas here
-    -- we want every expansion this table has real data for, regardless of
-    -- which client is currently viewing it. Falls back to Classic if no
-    -- column declares an `exp` at all.
-    local highestSupported = LE_EXPANSION_CLASSIC
-    for _, col in ipairs(data.columns or {}) do
-        if col.exp and col.exp > highestSupported then
-            highestSupported = col.exp
-        end
-    end
-
-    local levels = {}
-    local names = {}
-    for _, level in ipairs(Functions_General:GetExpansionLevels()) do
-        if level <= highestSupported then
-            levels[#levels + 1] = level
-            names[level] = Functions_General:GetExpansionName(level)
-        end
-    end
-
-    local selected = levels[1]
-    for _, level in ipairs(levels) do
-        if level == currentLevel then
-            selected = level
-            break
-        end
-    end
-
-    -- No dropdown:SetLabel(...) here - that renders the label above the
-    -- dropdown instead of beside it. Leaving it unset keeps the dropdown at
-    -- its default 26px-tall, no-label layout so it can sit inline with its
-    -- own separate Label widget below instead.
-    local DROPDOWN_WIDTH = 160
-    local dropdown = Functions_Ace:CreateDropdown()
-    dropdown:SetWidth(DROPDOWN_WIDTH)
-    -- AceGUI's Dropdown widget has no exported method for this - its
-    -- UIDropDownMenuTemplate-based text is center-justified by default, so
-    -- the selected-value text is reached directly via the widget's own
-    -- `.text` FontString field.
-    dropdown.text:SetJustifyH("LEFT")
-    -- `levels` is already ascending (GetExpansionLevels()'s own order) -
-    -- passed as the explicit order so SetList doesn't fall back to sorting
-    -- the LE_EXPANSION_* values itself.
-    dropdown:SetList(names, levels)
-    dropdown:SetValue(selected)
-    dropdown:SetCallback("OnValueChanged", function(_, _, level)
-        onSelect(level)
-    end)
-
-    local label = Functions_Ace:CreateLabel()
-    label:SetFontObject(GameFontHighlightLarge)
-    label:SetText("Current Expansion Data:")
-    local labelWidth = math.ceil(label.label:GetStringWidth()) + 8
-    label:SetWidth(labelWidth)
-
-    local totalWidth = labelWidth + DROPDOWN_WIDTH
-    local group = Functions_Ace:CreateGroup()
-    group:SetLayout("Flow")
-    group:SetWidth(totalWidth)
-    -- SimpleGroup's Flow layout reads content.width directly, which SetWidth
-    -- only updates asynchronously via the frame's OnSizeChanged - without
-    -- this a group recycled from AceGUI's shared SimpleGroup pool can carry
-    -- over a stale, narrower width and wrap the dropdown onto its own row
-    -- (see DungeonInfo.lua/DungeonEntry.lua's identical line).
-    group.content.width = totalWidth
-    group:AddChild(label)
-    group:AddChild(dropdown)
-
-    return group, selected
-end
-
 -- A Label showing `text`, with tooltip+click wired up like DataTable.lua's
 -- item cells (WireItemCell) when `itemLink` is given -
 -- Classic Era's FontString has no SetHyperlinksEnabled (that's what the
@@ -318,6 +227,15 @@ function GatheringPage:AddHeader(scroll, parent, profession, data, recommendatio
     -- label added below.
     local trailingSpacer
 
+    -- Unsubscribes this page from the global expansion dropdown (mainframe.lua)
+    -- when its scroll frame is torn down - CategoryTabs:Render releases the
+    -- whole tab tree on every tab switch, so without this a stale listener
+    -- would keep firing RebuildTable against a released scroll/tableWidget.
+    local subscriptionKey = {}
+    scroll:SetCallback("OnRelease", function()
+        Functions_ExpansionState:Unsubscribe(subscriptionKey)
+    end)
+
     local function RebuildTable(selectedExpansion)
         if tableWidget then
             for idx, child in ipairs(scroll.children) do
@@ -332,10 +250,9 @@ function GatheringPage:AddHeader(scroll, parent, profession, data, recommendatio
         scroll:AddChild(tableWidget, trailingSpacer)
     end
 
-    local expansionDropdown, initialExpansion = BuildExpansionDropdown(RebuildTable, data)
-    scroll:AddChild(expansionDropdown)
-
-    scroll:AddChild(GeneralUI:BuildSpacer())
+    Functions_ExpansionState:Subscribe(subscriptionKey, function(level)
+        RebuildTable(level)
+    end)
 
     -- trailingSpacer stays nil (RebuildTable just appends the table) when
     -- there's no recommendations section to keep it above.
@@ -360,5 +277,5 @@ function GatheringPage:AddHeader(scroll, parent, profession, data, recommendatio
         scroll:AddChild(GeneralUI:BuildSpacer())
     end
 
-    RebuildTable(initialExpansion)
+    RebuildTable(Functions_ExpansionState:GetLevel())
 end

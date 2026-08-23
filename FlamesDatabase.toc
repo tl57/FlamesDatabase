@@ -17,6 +17,7 @@ Source/Components/AceGUIWidget-FlamesDataTable.lua
 
 Localization/strings_en.lua
 Source/Tools/Functions/General.lua
+Source/Tools/Functions/ExpansionState.lua
 Source/Tools/Functions/Professions.lua
 Source/Tools/Functions/GeneralUI.lua
 Source/Tools/Functions/AddOnAccess.lua

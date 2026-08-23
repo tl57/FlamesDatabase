@@ -67,10 +67,13 @@ end
 -- adds both to its own row once every pair's width is known). A plain Label
 -- beside the control (mirrors GatheringPage.lua's BuildExpansionRadioGroup)
 -- rather than Dropdown's own SetLabel, which stacks the label above the
--- control instead of beside it. Returns the label, the dropdown, and the
--- label's measured width (the caller needs it to size the row).
--- `dropdownWidth` defaults to `defaultWidth` if omitted.
-function GeneralUI:BuildLabeledDropdown(labelText, items, dropdownWidth, defaultWidth)
+-- control instead of beside it. `order`, if given, is passed straight through
+-- as Dropdown:SetList's explicit key order (e.g. an ascending array of
+-- expansion levels keying into `items`) instead of falling back to SetList's
+-- own sort. Returns the label, the dropdown, and the label's measured width
+-- (the caller needs it to size the row). `dropdownWidth` defaults to
+-- `defaultWidth` if omitted.
+function GeneralUI:BuildLabeledDropdown(labelText, items, order, dropdownWidth, defaultWidth)
     local label = Functions_Ace:CreateLabel()
     label:SetFontObject(GameFontHighlightLarge)
     label:SetText(labelText)
@@ -79,13 +82,38 @@ function GeneralUI:BuildLabeledDropdown(labelText, items, dropdownWidth, default
 
     local dropdown = Functions_Ace:CreateDropdown()
     dropdown:SetWidth(dropdownWidth or defaultWidth)
-    dropdown:SetList(items)
+    dropdown:SetList(items, order)
     -- The Dropdown widget's selected-text FontString (self.text in
     -- AceGUIWidget-DropDown.lua) inherits UIDropDownMenuTemplate's default
     -- CENTER justify; left-align it to match every other label in this addon.
     dropdown.text:SetJustifyH("LEFT")
 
     return label, dropdown, labelWidth
+end
+
+-- BuildLabeledDropdown's label+dropdown pair, already wrapped in a
+-- ready-to-AddChild row group (mirrors the SimpleGroup/"Flow"-layout wrapping
+-- GatheringPage.lua/ProspectingPage.lua's old per-page BuildExpansionDropdown
+-- copies each did, generalized here so a third copy isn't needed for a
+-- window-level dropdown). Caller still wires SetValue/SetCallback on the
+-- returned dropdown. Returns the row group and the dropdown.
+function GeneralUI:BuildLabeledDropdownRow(labelText, items, order, dropdownWidth)
+    local label, dropdown, labelWidth = self:BuildLabeledDropdown(labelText, items, order, dropdownWidth, dropdownWidth)
+
+    local totalWidth = labelWidth + dropdownWidth
+    local group = Functions_Ace:CreateGroup()
+    group:SetLayout("Flow")
+    group:SetWidth(totalWidth)
+    -- SimpleGroup's Flow layout reads content.width directly, which SetWidth
+    -- only updates asynchronously via the frame's OnSizeChanged - without
+    -- this a group recycled from AceGUI's shared SimpleGroup pool can carry
+    -- over a stale, narrower width and wrap the dropdown onto its own row
+    -- (see the old per-page BuildExpansionDropdown copies' identical line).
+    group.content.width = totalWidth
+    group:AddChild(label)
+    group:AddChild(dropdown)
+
+    return group, dropdown
 end
 
 -- Creates a bare Label widget - the common first step before any

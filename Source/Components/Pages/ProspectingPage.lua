@@ -9,68 +9,6 @@ of a skill-breakpoint grid) has nothing in common with GatheringPage's.
 -------------------------------------------------------------------------------]]
 ProspectingPage = {}
 
--- A label followed by a dropdown, on the same row, offering one option per
--- expansion `data.rows` actually has a row for, with the one matching the
--- realm's current expansion pre-selected - same idea as GatheringPage.lua's
--- BuildExpansionDropdown, except the cap is read from each row's own
--- `expansion` field instead of a DataTable column's `exp`, since Prospecting
--- has no per-expansion columns (its 8 gem-group columns apply to every
--- expansion's rows alike).
--- Returns the group widget and the initially selected level.
-local function BuildExpansionDropdown(onSelect, data)
-    local currentLevel = Functions_General:GetServerExpansionLevel()
-
-    local highestSupported = LE_EXPANSION_CLASSIC
-    for _, row in ipairs(data.rows or {}) do
-        if row.expansion and row.expansion > highestSupported then
-            highestSupported = row.expansion
-        end
-    end
-
-    local levels = {}
-    local names = {}
-    for _, level in ipairs(Functions_General:GetExpansionLevels()) do
-        if level <= highestSupported then
-            levels[#levels + 1] = level
-            names[level] = Functions_General:GetExpansionName(level)
-        end
-    end
-
-    local selected = levels[1]
-    for _, level in ipairs(levels) do
-        if level == currentLevel then
-            selected = level
-            break
-        end
-    end
-
-    local DROPDOWN_WIDTH = 160
-    local dropdown = Functions_Ace:CreateDropdown()
-    dropdown:SetWidth(DROPDOWN_WIDTH)
-    dropdown.text:SetJustifyH("LEFT")
-    dropdown:SetList(names, levels)
-    dropdown:SetValue(selected)
-    dropdown:SetCallback("OnValueChanged", function(_, _, level)
-        onSelect(level)
-    end)
-
-    local label = Functions_Ace:CreateLabel()
-    label:SetFontObject(GameFontHighlightLarge)
-    label:SetText("Current Expansion Data:")
-    local labelWidth = math.ceil(label.label:GetStringWidth()) + 8
-    label:SetWidth(labelWidth)
-
-    local totalWidth = labelWidth + DROPDOWN_WIDTH
-    local group = Functions_Ace:CreateGroup()
-    group:SetLayout("Flow")
-    group:SetWidth(totalWidth)
-    group.content.width = totalWidth
-    group:AddChild(label)
-    group:AddChild(dropdown)
-
-    return group, selected
-end
-
 -- Resolved gem data, keyed by itemId ({ link = coloredItemLink, icon =
 -- iconFileID }), populated once and reused for the rest of the session
 -- (Prospecting's gem items don't change at runtime). `nil` until
@@ -219,6 +157,7 @@ function ProspectingPage:AddHeader(scroll)
     local pageReleased = false
     local refreshScheduled = false
     local RebuildTable
+    local subscriptionKey = {}
 
     local function ScheduleRefresh()
         if pageReleased or refreshScheduled then
@@ -252,16 +191,14 @@ function ProspectingPage:AddHeader(scroll)
 
     scroll:SetCallback("OnRelease", function()
         pageReleased = true
+        Functions_ExpansionState:Unsubscribe(subscriptionKey)
     end)
 
-    local expansionDropdown, initialExpansion = BuildExpansionDropdown(function(level)
+    currentExpansion = Functions_ExpansionState:GetLevel()
+    Functions_ExpansionState:Subscribe(subscriptionKey, function(level)
         currentExpansion = level
         RebuildTable(level)
-    end, ProspectingData)
-    currentExpansion = initialExpansion
-    scroll:AddChild(expansionDropdown)
+    end)
 
-    scroll:AddChild(GeneralUI:BuildSpacer())
-
-    RebuildTable(initialExpansion)
+    RebuildTable(currentExpansion)
 end
