@@ -8,6 +8,7 @@ ChangelogData = {
         changes = {
             { category = "Added", text = "Added Prospecting Info." },
             { category = "Added", text = "Option to show or hide Expansion Information." },
+            { category = "Added", text = "Support for Lich King clients and servers." },
             { category = "Changed", text = "Moved Expansion dropdown to Main Window header. Affects every tab." },
             { category = "Fixed", text = "Fixed label size in Options menu." },
         },

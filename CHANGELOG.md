@@ -3,6 +3,7 @@
 ### Added
 - Added Prospecting Info
 - Options menu to show expansion Info
+- Added Support for LK client and servers.
 ### Changed
 - Moved Expansion dropdown to Main Window Info. Affects every Tab.
 ### Fixed

@@ -1,4 +1,4 @@
-## Interface: 11509, 20506
+## Interface: 11509, 20506, 30403
 ## Title: Flame's Database
 ## Notes: Profession, Spell and Item Database
 ## Version: 0.6.0

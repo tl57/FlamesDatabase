@@ -33,17 +33,20 @@ local function HighestRowExpansion(data)
     return highest
 end
 
--- Capped to the MINIMUM of what each of Mining/Herbalism/Prospecting can
--- actually render, not the union/max - DataTable:Build filters columns by
--- exact match (col.exp == selectedExpansion), so offering a level higher than
--- what any one of them has data for would silently drop that page's
--- skill-breakpoint columns instead of gracefully capping.
+-- Capped to the MAXIMUM (union) of what any one of Mining/Herbalism/
+-- Prospecting has data for, not the minimum/intersection - the dropdown
+-- should offer every expansion at least one page supports, same as each
+-- page's old, since-removed per-page dropdown used to. A page with no data
+-- for the selected level just renders without its expansion-specific
+-- columns/rows (DataTable:Build's exact-match column filter, Prospecting's
+-- `Introduced <= selectedExpansion` row filter) instead of being excluded
+-- from the offered list entirely.
 local function ComputeAvailableLevels()
     if cachedLevels then
         return cachedLevels, cachedNames
     end
 
-    local cap = math.min(
+    local cap = math.max(
         HighestColumnExp(MiningData),
         HighestColumnExp(HerbalismData),
         HighestRowExpansion(ProspectingData)
