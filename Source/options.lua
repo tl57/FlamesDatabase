@@ -12,6 +12,7 @@ local options = {
     showChangeLog = {
       order = 2,
       type = "toggle",
+      width = "full",
       name = "Show Changelog after an update",
       desc = "Automatically show the changelog window when the addon updates to a new version.",
       get = function(info) return FlamesDatabase.settings.showChangeLog end,

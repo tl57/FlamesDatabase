@@ -7,7 +7,8 @@ ChangelogData = {
         version = "0.8.0",
         changes = {
             { category = "Added", text = "Added Prospecting Info." },
-            { category = "Changed", text = "Move Expansion dropdown to Main Window header." },
+            { category = "Changed", text = "Moved Expansion dropdown to Main Window header. Affects every tab." },
+            { category = "Fixed", text = "Fixed label size in Options menu." },
         },
     },
     {

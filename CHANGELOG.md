@@ -3,7 +3,9 @@
 ### Added
 - Added Prospecting Info
 ### Changed
-- Moved Expansion dropdown to Main Window Info
+- Moved Expansion dropdown to Main Window Info. Affects every Tab.
+### Fixed
+- Fixed label size in Options menu
 
 ## v0.7.0
 ### Added
