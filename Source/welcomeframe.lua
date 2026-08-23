@@ -58,6 +58,7 @@ function showWelcomeFrame()
 		"Dungeon Quest information such as NPC, Quest Link, Quest Status, Faction/Class and Notes.",
 		"Filter visible Dungeon Quest information.",
 		"Supports Classic, Burning Crusade and Lich King versions.",
+		"Configure a keybind in the Options to open the main window.",
 		"Open the main window with /fdb",
 	}
 	for _, text in ipairs(placeholderFeatures) do
