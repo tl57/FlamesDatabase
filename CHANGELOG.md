@@ -2,6 +2,7 @@
 ## v0.8.0
 ### Added
 - Added Prospecting Info
+- Options menu to show expansion Info
 ### Changed
 - Moved Expansion dropdown to Main Window Info. Affects every Tab.
 ### Fixed

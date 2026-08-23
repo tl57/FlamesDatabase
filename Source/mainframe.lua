@@ -2,6 +2,39 @@ local addonName = ...
 local main_container = nil -- singleton: created once
 -- think about focusing a specific frame when having a profession open or in a specific dungeon
 
+-- The 3 stacked regions inside main_container's shell, kept as upvalues (not
+-- locals scoped to toggleMainFrame's one-time build block) so
+-- RefreshExpansionRowVisibility can show/hide/re-anchor them later, from
+-- options.lua's "Expansion" category checkbox, without rebuilding anything.
+local shell, headerRow, separator, tabs
+local ROW_SPACING = 12 -- matches GeneralUI:BuildSpacer's existing gap
+
+-- Shows/hides the global expansion dropdown row + its separator based on
+-- FlamesDatabase.settings.showExpansionDropdown, re-anchoring the tabs
+-- widget to fill whatever space that opens up or closes off. No-ops until
+-- the window has been built at least once (shell is nil before
+-- toggleMainFrame's first call) - the current setting is applied once at
+-- build time too, at the end of that block below.
+function RefreshExpansionRowVisibility()
+	if not shell then
+		return
+	end
+
+	local show = FlamesDatabase.settings == nil or FlamesDatabase.settings.showExpansionDropdown ~= false
+
+	tabs.widget.frame:ClearAllPoints()
+	if show then
+		headerRow.frame:Show()
+		separator.frame:Show()
+		tabs.widget.frame:SetPoint("TOPLEFT", separator.frame, "BOTTOMLEFT", 0, -ROW_SPACING)
+	else
+		headerRow.frame:Hide()
+		separator.frame:Hide()
+		tabs.widget.frame:SetPoint("TOPLEFT", shell.content, "TOPLEFT", 0, 0)
+	end
+	tabs.widget.frame:SetPoint("BOTTOMRIGHT", shell.content, "BOTTOMRIGHT", 0, 0)
+end
+
 function toggleMainFrame()
 	-- think about making the frame a singleton
 	if (main_container and main_container.frame:IsShown()) then
@@ -63,14 +96,13 @@ function toggleMainFrame()
 		-- resize-safe via the same anchor chain the lone tabs widget relied
 		-- on before. shell is never released, so its nil layout can't leak
 		-- into an unrelated SimpleGroup recycled from the shared pool.
-		local shell = Functions_Ace:CreateGroup()
+		shell = Functions_Ace:CreateGroup()
 		main_container:AddChild(shell)
 		shell:SetLayout(nil)
 
-		local ROW_SPACING = 12 -- matches GeneralUI:BuildSpacer's existing gap
-
 		local levels, names = Functions_ExpansionState:GetAvailableLevels()
-		local headerRow, dropdown = GeneralUI:BuildLabeledDropdownRow(
+		local dropdown
+		headerRow, dropdown = GeneralUI:BuildLabeledDropdownRow(
 			"Current Expansion Data:", names, levels, 160)
 		dropdown:SetValue(Functions_ExpansionState:GetLevel())
 		dropdown:SetCallback("OnValueChanged", function(_, _, level)
@@ -82,7 +114,7 @@ function toggleMainFrame()
 
 		-- Blank Heading = a pure full-width divider line (its OnAcquire
 		-- already sets SetFullWidth/SetHeight(18) with no text).
-		local separator = Functions_Ace:CreateHeading()
+		separator = Functions_Ace:CreateHeading()
 		shell:AddChild(separator)
 		separator.frame:ClearAllPoints()
 		separator.frame:SetPoint("TOPLEFT", headerRow.frame, "BOTTOMLEFT", 0, -ROW_SPACING)
@@ -91,19 +123,18 @@ function toggleMainFrame()
 		-- Tab tree (and everything under it, e.g. Mining's DataTable) is built
 		-- once here and reused on subsequent opens via Show/Hide below, instead
 		-- of being rebuilt from scratch - and leaked - on every toggle.
-		local tabs = CategoryTabs:New({
+		tabs = CategoryTabs:New({
 			parent = shell,
 			tabs = {
 				{ value = "Professions", text = "Professions" },
 				{ value = "Dungeons",    text = "Dungeons" },
 			},
 		})
-		tabs.widget.frame:ClearAllPoints()
-		tabs.widget.frame:SetPoint("TOPLEFT", separator.frame, "BOTTOMLEFT", 0, -ROW_SPACING)
-		tabs.widget.frame:SetPoint("BOTTOMRIGHT", shell.content, "BOTTOMRIGHT", 0, 0)
 
 		tabs:AddPage("Professions", TabProfessions.Build)
 		tabs:AddPage("Dungeons", TabDungeons.Build)
+
+		RefreshExpansionRowVisibility()
 	end
 	main_container:Show()
 

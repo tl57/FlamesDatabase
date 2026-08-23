@@ -39,11 +39,19 @@ local function Initialize()
             showChangeLog = true,
             showNewInstall = true,
             shownChangeLog = false,
-            shownNewInstall = false
+            shownNewInstall = false,
+            showExpansionDropdown = true
         }
         if debug then print("inited new vars") end
     end
-    
+
+    -- Existing installs from before this setting existed have a settings
+    -- table but no showExpansionDropdown key yet - default them to shown,
+    -- same as a fresh install, rather than leaving it nil (falsy).
+    if FlamesDatabase.settings.showExpansionDropdown == nil then
+        FlamesDatabase.settings.showExpansionDropdown = true
+    end
+
     if FlamesDatabase.settings.changelogVersion ~= version and FlamesDatabase.settings.showChangeLog then
         ShowChangeLog()
         if debug then print("show changelog dialog") end

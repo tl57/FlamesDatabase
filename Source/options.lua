@@ -7,7 +7,7 @@ local options = {
     header = {
       order = 1,
       type = "header",
-      name = addonName,
+      name = "General",
     },
     showChangeLog = {
       order = 2,
@@ -17,6 +17,23 @@ local options = {
       desc = "Automatically show the changelog window when the addon updates to a new version.",
       get = function(info) return FlamesDatabase.settings.showChangeLog end,
       set = function(info, value) FlamesDatabase.settings.showChangeLog = value end,
+    },
+    expansionHeader = {
+      order = 3,
+      type = "header",
+      name = "Expansion",
+    },
+    showExpansionDropdown = {
+      order = 4,
+      type = "toggle",
+      width = "full",
+      name = "Show info about other expansions",
+      desc = "Allows checking information from a different Expansion.",
+      get = function(info) return FlamesDatabase.settings.showExpansionDropdown end,
+      set = function(info, value)
+        FlamesDatabase.settings.showExpansionDropdown = value
+        RefreshExpansionRowVisibility()
+      end,
     },
   },
 }
