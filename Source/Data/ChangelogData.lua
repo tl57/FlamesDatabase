@@ -7,7 +7,7 @@ ChangelogData = {
         version = "0.8.0",
         changes = {
             { category = "Added", text = "Added Prospecting Info." },
-            { category = "Fixed", text = "Move Expansion dropdown to Main Window header." },
+            { category = "Changed", text = "Move Expansion dropdown to Main Window header." },
         },
     },
     {
