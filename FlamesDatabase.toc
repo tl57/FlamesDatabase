@@ -25,12 +25,15 @@ Source/Components/DungeonEntry.lua
 Source/Data/ChangelogData.lua
 Source/Data/Professions/MiningData.lua
 Source/Data/Professions/HerbalismData.lua
+Source/Data/Professions/ProspectingData.lua
 Source/Data/Dungeons/DungeonInfoData.lua
 Source/Data/Dungeons/DungeonQuestData.lua
 Source/Components/DataTable.lua
 Source/Components/Pages/GatheringPage.lua
 Source/Components/Pages/Mining.lua
 Source/Components/Pages/Herbalism.lua
+Source/Components/Pages/ProspectingPage.lua
+Source/Components/Pages/Prospecting.lua
 Source/Components/Pages/DungeonInfo.lua
 Source/Components/Pages/DungeonQuests.lua
 Source/Components/TabGroups/TabProfessions.lua

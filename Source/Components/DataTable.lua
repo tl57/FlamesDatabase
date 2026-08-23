@@ -28,9 +28,35 @@ than a manually guessed number - recomputed every DataTable:Build call, so it
 resizes if `selectedExpansion` changes which rows are shown. Only meaningful
 on column[1]; every other column still needs an explicit `width`.
 
-`options.rowHeight` overrides the default row height (ROW_HEIGHT below) for
-every row in this table - useful when a column's word-wrapped text needs a
-taller row so its second line doesn't overlap the row border below.
+`options.rowHeight` overrides the default minimum row height (ROW_HEIGHT
+below) for every row in this table - useful when a column's word-wrapped
+text needs a taller row so its second line doesn't overlap the row border
+below. It's a floor, not a fixed height: a row grows taller than it on its
+own if any of its cells is list-valued (see below) and needs more room than
+that to fit every entry (see ComputeRowHeight) - other rows in the same
+table stay at the minimum.
+
+A cell's row value can be an array of `{ icon = fileID/nil, text = string,
+itemLink = string/nil }` entries instead of a plain string/number - rendered
+as a vertically stacked list of icon+text sub-rows, each with its own
+tooltip/shift-click-to-chat when `itemLink` is set (see AcquireSubRow). Lets
+several items each get independent tooltip/click behavior within one cell,
+which a single cell's own text/icon can't do (only the Name column's one
+ItemLinkId gets that - see WireItemCell). The row automatically grows tall
+enough to fit every entry (see ComputeRowHeight) - no need to precompute a
+row height by hand. Used by Prospecting's multi-gem columns.
+
+`column.mergeRepeats = true` merges consecutive rows that share that column's
+exact value into one taller cell spanning all of them (Excel/Sheets-style
+vertical cell merge) - shown once, vertically centered, instead of once per
+row. Grouping is purely by consecutive equal values (`==`), independent per
+column, so unrelated columns can merge along completely different
+boundaries; other rows elsewhere in the table that happen to share a value
+but aren't adjacent do NOT merge with each other. A merged cell's height is
+the sum of its member rows' own heights (see ComputeRowHeight), not a
+multiple of one - rows with taller list-valued cells elsewhere still
+contribute their real height to the group. Used by Prospecting's Name/Skill
+columns, which repeat identically across an ore's several gem-tier rows.
 
 Non-Name columns can tint their text: `column.background` (a key into
 CELL_BACKGROUND_COLORS) gives every cell in the column the same fixed color;
@@ -226,6 +252,15 @@ local function AcquireCell(container, parent)
     cell:SetScript("OnLeave", nil)
     cell:SetScript("OnMouseUp", nil)
     cell.pendingItemId = nil
+    -- Hides any icon+text sub-rows a previous build may have shown on this
+    -- pooled cell for a list-valued column (see AcquireSubRow/BuildRow) -
+    -- without this, a cell recycled from a multi-gem-style column into a
+    -- plain text/number column would still show its old sub-rows underneath.
+    if cell.subRowPool then
+        for _, subRow in ipairs(cell.subRowPool) do
+            subRow:Hide()
+        end
+    end
     return cell
 end
 
@@ -257,6 +292,43 @@ local function AcquireInfoIcon(container, parent)
     icon:Show()
     icon:EnableMouse(true)
     return icon
+end
+
+local SUBROW_HEIGHT = 16
+local SUBROW_ICON_SIZE = 14
+local SUBROW_ICON_TEXT_GAP = 3
+
+-- Returns `cell`'s Nth pooled icon+text sub-row (creating it if needed),
+-- reset to a blank/hidden state. A cell whose row value is a list of
+-- `{ icon, text, itemLink }` entries (see BuildRow) renders one of these per
+-- entry instead of using the cell's own single text/icon - lets several
+-- items each get their own tooltip/shift-click-to-chat within one cell,
+-- which a single cell can't otherwise do (only the Name column's one
+-- ItemLinkId gets that, via the cell's own icon/text - see WireItemCell).
+-- Pooled per-cell (not per-container like AcquireRow/AcquireCell) since
+-- sub-rows are only ever meaningful attached to the one cell that owns them.
+local function AcquireSubRow(cell, n)
+    cell.subRowPool = cell.subRowPool or {}
+    local subRow = cell.subRowPool[n]
+    if not subRow then
+        subRow = CreateFrame("Frame", nil, cell)
+        subRow.icon = subRow:CreateTexture(nil, "ARTWORK")
+        subRow.icon:SetSize(SUBROW_ICON_SIZE, SUBROW_ICON_SIZE)
+        subRow.icon:SetPoint("LEFT", 0, 0)
+        subRow.text = subRow:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        subRow.text:SetPoint("LEFT", subRow.icon, "RIGHT", SUBROW_ICON_TEXT_GAP, 0)
+        subRow.text:SetJustifyH("LEFT")
+        cell.subRowPool[n] = subRow
+    end
+
+    subRow:ClearAllPoints()
+    subRow:Show()
+    subRow.icon:Hide()
+    subRow:EnableMouse(false)
+    subRow:SetScript("OnEnter", nil)
+    subRow:SetScript("OnLeave", nil)
+    subRow:SetScript("OnMouseUp", nil)
+    return subRow
 end
 
 -- Sizes a cell acquired via AcquireCell and (re)draws its border. Pass
@@ -345,10 +417,78 @@ local function WireQuestCell(cell, questId, level, displayText)
     end)
 end
 
+-- Hidden FontString reused to measure text width for auto-sized columns
+-- (see column.autoWidth below) and gem-entry line-wrapping (see
+-- LayoutGemEntries) without needing an actual rendered cell - never shown,
+-- parented to UIParent since it isn't tied to any one table's container.
+-- baseFontFile/Size/Flags are captured from GameFontNormalSmall the first
+-- time this runs (the same template every cell.text/cell.suffix uses) and
+-- reused for every later measurement.
+local measureFontString
+local baseFontFile, baseFontSize, baseFontFlags
+
+-- Measures `text` as it would actually render: at the cell's base font by
+-- default, or that font shifted by `sizeDelta` (e.g. the Name column's
+-- expansion-suffix font, EXPANSION_SUFFIX_FONT_SIZE_DELTA smaller - mirrors
+-- BuildRow's identical derivation off cell.text:GetFont()).
+local function MeasureTextWidth(text, sizeDelta)
+    if not measureFontString then
+        measureFontString = UIParent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        baseFontFile, baseFontSize, baseFontFlags = measureFontString:GetFont()
+    end
+    measureFontString:SetFont(baseFontFile, math.max(baseFontSize + (sizeDelta or 0), 6), baseFontFlags)
+    measureFontString:SetText(text)
+    return measureFontString:GetStringWidth()
+end
+
+local GEM_ENTRY_GAP = 10
+
+-- Packs a list-valued cell's entries (see BuildRow) left-to-right, wrapping
+-- to a new line only when the next entry wouldn't fit - several short gem
+-- names share a line instead of each getting its own, the way a word-wrapped
+-- paragraph flows, while a single entry too wide for the column still gets
+-- its own line rather than overflowing sideways forever. Both BuildRow (to
+-- position each entry) and ComputeRowHeight (to know how tall the cell needs
+-- to be) call this with the same `value`/`columnWidth`, so they always agree
+-- on the line count - cheap enough (a handful of entries per cell) that
+-- recomputing per call beats threading a cached result between the two.
+-- Returns parallel `line`/`x`/`width` arrays (1-based line number, left-edge
+-- x offset from the cell's own left padding, and rendered pixel width, all
+-- for entry i) plus the total line count.
+local function LayoutGemEntries(value, columnWidth)
+    local availWidth = math.max(columnWidth - 2 * PADDING, 0)
+    local line, x, width = {}, {}, {}
+    local lineCount = 1
+    local cursor = 0
+    for i, entry in ipairs(value) do
+        local entryWidth = SUBROW_ICON_SIZE + SUBROW_ICON_TEXT_GAP + MeasureTextWidth(entry.text or "")
+        if cursor > 0 then
+            if cursor + GEM_ENTRY_GAP + entryWidth > availWidth then
+                lineCount = lineCount + 1
+                cursor = 0
+            else
+                cursor = cursor + GEM_ENTRY_GAP
+            end
+        end
+        line[i] = lineCount
+        x[i] = cursor
+        width[i] = entryWidth
+        cursor = cursor + entryWidth
+    end
+    return line, x, width, lineCount
+end
+
 -- Build one row's cells directly under `container`, anchored at a fixed
 -- vertical offset. The table is sized to fit all of them (the page around it
 -- scrolls). `rowHeight` overrides the default ROW_HEIGHT (see DataTable:Build).
-local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
+-- `rowIdx`/`mergeStarts`/`mergeHeights` drive column.mergeRepeats (see
+-- DataTable:Build): `mergeStarts[col.id][rowIdx]` is the row index this row's
+-- merge group starts at for that column (itself, if this row IS the start),
+-- and `mergeHeights[col.id][startIdx]` is that group's total height - a
+-- merge-flagged column draws its cell (at the group's full height) only on
+-- the group's first row, and is skipped entirely on every other row in the
+-- group, since that first cell already visually covers them.
+local function BuildRow(container, row, columns, yOffset, skill, rowHeight, rowIdx, mergeStarts, mergeHeights)
     local frame = AcquireRow(container, container)
     frame:SetPoint("TOPLEFT", container, "TOPLEFT", 0, yOffset)
     frame:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, yOffset)
@@ -372,9 +512,15 @@ local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
     end
 
     for i, col in ipairs(columns) do
+        -- A merge-flagged column only draws a cell on the first row of its
+        -- group (see DataTable:Build's mergeStarts precompute) - every other
+        -- row in that group is skipped entirely here, since the first row's
+        -- cell is already sized (mergeHeights) to visually cover them.
+        if not (col.mergeRepeats and mergeStarts[col.id][rowIdx] ~= rowIdx) then
         local cell = AcquireCell(container, frame)
         cell:SetPoint("TOPLEFT", frame, "TOPLEFT", col._x, 0)
-        LayoutCell(cell, col.width, rowHeight)
+        local cellHeight = col.mergeRepeats and mergeHeights[col.id][rowIdx] or rowHeight
+        LayoutCell(cell, col.width, cellHeight)
 
         local value = row[col.id]
         cell.text:SetJustifyH(col.justify or "LEFT")
@@ -462,6 +608,47 @@ local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
                     cell.icon:Show()
                 end
             end
+        elseif type(value) == "table" then
+            -- A list of { icon, text, itemLink } entries (see AcquireSubRow)
+            -- instead of the usual plain string/number - one icon+text
+            -- sub-row per entry, flowed left-to-right and wrapped onto
+            -- further lines as needed (see LayoutGemEntries), each
+            -- independently tooltip/shift-click-wired when it has an
+            -- itemLink. Used by columns whose cells can hold several items
+            -- at once (e.g. Prospecting's gem columns), which a single
+            -- cell's own text/icon can't represent.
+            cell.text:SetText("")
+            local line, x, width = LayoutGemEntries(value, col.width)
+            for n, entry in ipairs(value) do
+                local subRow = AcquireSubRow(cell, n)
+                subRow:SetPoint("TOPLEFT", cell, "TOPLEFT", PADDING + x[n], -(line[n] - 1) * SUBROW_HEIGHT)
+                subRow:SetSize(width[n], SUBROW_HEIGHT)
+                subRow.text:SetWidth(math.max(width[n] - SUBROW_ICON_SIZE - SUBROW_ICON_TEXT_GAP, 0))
+                subRow.text:SetText(entry.text or "")
+                if entry.icon then
+                    subRow.icon:SetTexture(entry.icon)
+                    subRow.icon:Show()
+                end
+                if entry.itemLink then
+                    subRow:EnableMouse(true)
+                    subRow:SetScript("OnEnter", function(self)
+                        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                        GameTooltip:SetHyperlink(entry.itemLink)
+                        GameTooltip:Show()
+                    end)
+                    subRow:SetScript("OnLeave", function()
+                        GameTooltip:Hide()
+                    end)
+                    subRow:SetScript("OnMouseUp", function()
+                        if IsModifiedClick("CHATLINK") then
+                            ChatEdit_InsertLink(entry.itemLink)
+                        end
+                    end)
+                end
+            end
+            for n = #value + 1, #(cell.subRowPool or {}) do
+                cell.subRowPool[n]:Hide()
+            end
         else
             cell.text:SetText(value or "")
 
@@ -489,30 +676,32 @@ local function BuildRow(container, row, columns, yOffset, skill, rowHeight)
                 cell.bg:Show()
             end
         end
+        end
     end
 end
 
--- Hidden FontString reused to measure text width for auto-sized columns
--- (see column.autoWidth below) without needing an actual rendered cell -
--- never shown, parented to UIParent since it isn't tied to any one table's
--- container. baseFontFile/Size/Flags are captured from GameFontNormalSmall
--- the first time this runs (the same template every cell.text/cell.suffix
--- uses) and reused for every later measurement.
-local measureFontString
-local baseFontFile, baseFontSize, baseFontFlags
-
--- Measures `text` as it would actually render: at the cell's base font by
--- default, or that font shifted by `sizeDelta` (e.g. the Name column's
--- expansion-suffix font, EXPANSION_SUFFIX_FONT_SIZE_DELTA smaller - mirrors
--- BuildRow's identical derivation off cell.text:GetFont()).
-local function MeasureTextWidth(text, sizeDelta)
-    if not measureFontString then
-        measureFontString = UIParent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        baseFontFile, baseFontSize, baseFontFlags = measureFontString:GetFont()
+-- How tall `row` needs to be: `minHeight` (ROW_HEIGHT, or options.rowHeight
+-- if the caller gave one - see DataTable:Build), or taller if any of its
+-- cells is list-valued (see BuildRow) and needs more than that to fit every
+-- entry - entries flow several-per-line (see LayoutGemEntries), so this is
+-- however many *lines* that wraps to, at SUBROW_HEIGHT each, not one line
+-- per entry. Each row gets exactly the height its own busiest cell needs
+-- instead of every row in the table sharing one fixed height - e.g.
+-- Prospecting's ore rows: Copper's 2-gem cell stays compact while Thorium's
+-- 6-gem cell grows only itself.
+local function ComputeRowHeight(row, columns, minHeight)
+    local height = minHeight
+    for _, col in ipairs(columns) do
+        local value = row[col.id]
+        if type(value) == "table" then
+            local _, _, _, lineCount = LayoutGemEntries(value, col.width)
+            local needed = lineCount * SUBROW_HEIGHT
+            if needed > height then
+                height = needed
+            end
+        end
     end
-    measureFontString:SetFont(baseFontFile, math.max(baseFontSize + (sizeDelta or 0), 6), baseFontFlags)
-    measureFontString:SetText(text)
-    return measureFontString:GetStringWidth()
+    return height
 end
 
 -- Build the table into an AceGUI SimpleGroup and return it. When
@@ -560,8 +749,13 @@ function DataTable:Build(parent, options, selectedExpansion)
     -- thing for any other column.
     if columns[1] and columns[1].autoWidth then
         local maxWidth = 0
+        -- Read via columns[1].id rather than hardcoding row.Name - every
+        -- caller so far has named its id column "Name" (Mining, Herbalism,
+        -- DungeonInfo, DungeonQuests all keep this identical), but
+        -- ProspectingData.lua's id column is "colName", so this needs to be
+        -- generic to work for both.
         for _, row in ipairs(rows) do
-            local rowWidth = MeasureTextWidth(row.Name or "")
+            local rowWidth = MeasureTextWidth(row[columns[1].id] or "")
             if row.ItemLinkId then
                 rowWidth = rowWidth + ICON_SIZE + ICON_TEXT_GAP
             end
@@ -588,8 +782,47 @@ function DataTable:Build(parent, options, selectedExpansion)
     local totalWidth = x
 
     local width = options.width or totalWidth
-    local rowHeight = options.rowHeight or ROW_HEIGHT
-    local height = HEADER_HEIGHT + (#rows * rowHeight)
+    -- A floor, not a fixed height: each row gets exactly as tall as its own
+    -- busiest cell needs (see ComputeRowHeight), never shorter than this.
+    local minRowHeight = options.rowHeight or ROW_HEIGHT
+    local rowHeights = {}
+    local totalRowsHeight = 0
+    for idx, row in ipairs(rows) do
+        local h = ComputeRowHeight(row, columns, minRowHeight)
+        rowHeights[idx] = h
+        totalRowsHeight = totalRowsHeight + h
+    end
+    local height = HEADER_HEIGHT + totalRowsHeight
+
+    -- column.mergeRepeats: consecutive rows sharing that column's exact
+    -- value collapse into one taller cell (see BuildRow). mergeStarts[col.id]
+    -- [idx] is the row index this row's merge group starts at (== idx if
+    -- this row IS the start); mergeHeights[col.id][startIdx] is that group's
+    -- total height - the sum of rowHeights across the group, not a multiple
+    -- of one, since a group can mix rows of different heights (e.g.
+    -- Prospecting's differently-sized gem-tier rows for one ore).
+    local mergeStarts, mergeHeights = {}, {}
+    for _, col in ipairs(columns) do
+        if col.mergeRepeats then
+            local starts, heights = {}, {}
+            mergeStarts[col.id] = starts
+            mergeHeights[col.id] = heights
+            local idx = 1
+            while idx <= #rows do
+                local groupStart = idx
+                local groupHeight = rowHeights[idx]
+                local j = idx + 1
+                while j <= #rows and rows[j][col.id] == rows[groupStart][col.id] do
+                    groupHeight = groupHeight + rowHeights[j]
+                    starts[j] = groupStart
+                    j = j + 1
+                end
+                starts[groupStart] = groupStart
+                heights[groupStart] = groupHeight
+                idx = j
+            end
+        end
+    end
 
     -- Container frame hosting header + rows. A dedicated widget type (see
     -- AceGUIWidget-FlamesDataTable.lua) - AceGUI pools widgets separately
@@ -703,10 +936,15 @@ function DataTable:Build(parent, options, selectedExpansion)
     -- colorized by (skill - cellValue) via SkillDiffColor. Otherwise untouched.
     local skill = options.profession and Functions_Professions:GetProfessionSkillNumber(options.profession)
 
-    -- Rows, stacked directly below the header. No inner scrollbar: the page
-    -- around this table already scrolls, so the table is just as tall as its data.
+    -- Rows, stacked directly below the header at their own individual
+    -- heights (rowHeights, precomputed above) rather than one shared
+    -- multiple of a fixed height. No inner scrollbar: the page around this
+    -- table already scrolls, so the table is just as tall as its data.
+    local yOffset = HEADER_HEIGHT
     for idx, row in ipairs(rows) do
-        BuildRow(container, row, columns, -(HEADER_HEIGHT + (idx - 1) * rowHeight), skill, rowHeight)
+        local h = rowHeights[idx]
+        BuildRow(container, row, columns, -yOffset, skill, h, idx, mergeStarts, mergeHeights)
+        yOffset = yOffset + h
     end
 
     -- Hide any pooled rows/cells left over from a build with more rows or
