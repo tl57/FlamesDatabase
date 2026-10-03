@@ -4,6 +4,12 @@
 
 ChangelogData = {
     {
+        version = "0.8.1",
+        changes = {
+            { category = "Added", text = "Added support for Wow Forever." },
+        },
+    },
+    {
         version = "0.8.0",
         changes = {
             { category = "Added", text = "Added Prospecting Info." },

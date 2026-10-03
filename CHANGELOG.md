@@ -1,4 +1,7 @@
 # Changelog
+## v0.8.1
+### Fixed
+- Added support for Wow Forever
 ## v0.8.0
 ### Added
 - Added Prospecting Info
